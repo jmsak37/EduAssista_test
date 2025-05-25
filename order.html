@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Place an Order - EduAssista</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        
+        .message-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 80%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        p {
+            color: #555;
+        }
+        
+        .button {
+            background-color: #1dbab4;
+            color: white;
+            padding: 10px 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            text-align: center;
+            transition: background-color 0.3s ease;
+            display: inline-block;
+        }
+        
+        .button:hover {
+            background-color: #00796b;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="message-container">
+        <h1>Loading, Please Wait...</h1>
+        <p>If you are not redirected, <a href="#" id="redirect-link">click here</a>.</p>
+    </div>
+
+    <script>
+        function checkUserSession() {
+            fetch('/EduAssista/client/check_session.php') // Ensure the correct path
+                .then(response => response.json())
+                .then(data => {
+                    if (data.loggedIn) {
+                        window.location.href = "/EduAssista/client/order.php";
+                    } else {
+                        window.location.href = "/EduAssista/login.html";
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking session:', error);
+                    window.location.href = "/EduAssista/login.html";
+                });
+        }
+
+        window.onload = checkUserSession;
+    </script>
+</body>
+
+</html>

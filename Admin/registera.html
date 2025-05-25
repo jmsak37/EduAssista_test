@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | EduAssista</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+
+<body>
+    <!-- Navigation placeholder -->
+    <div id="navbar-placeholder"></div>
+    <!-- Navigation Bar -->
+    <nav>
+        <a href="index.html">Dashboard</a>
+        <a href="registera.html">Add User</a>
+        <a href="admin_manage_roles.php">Manage Roles</a>
+        <a href="admin_view_audit_logs.php">View Audit Logs</a>
+        <a href="admin_logout.php" class="button" onclick="autoLogout();">Logout</a>
+    </nav>
+    <style>
+        /* Navigation bar styles */
+        
+        nav {
+            display: flex;
+            justify-content: center;
+            background-color: #00695c;
+            margin: 0;
+            padding: 0;
+        }
+        
+        nav a {
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        
+        nav a:hover {
+            background-color: #004d40;
+            transform: scale(1.1);
+        }
+    </style>
+    <!-- Navigation placeholder -->
+    <div id="navbar-placeholder"></div>
+
+    <div class="main-content">
+        <h1>REGISTER A</h1>
+        <div class="register-options">
+            <a>
+                <a href="../tutor/register_tutor.html" class="option-box">
+                    <h2>TUTOR</h2>
+                <a href="register.html" class="option-box">
+                    <h2>ADMIN</h2>
+                <a href="../client/register_client.html" class="option-box">
+                    <h2>CLIENT</h2>
+            </a>
+        </div>
+    </div>
+
+    <!-- Footer placeholder -->
+    <div id="footer-placeholder"></div>
+
+    <script>
+        // Load footer from footer.html
+        fetch('../footer.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('footer-placeholder').innerHTML = data;
+            })
+            .catch(error => console.error('Error loading footer:', error));
+    </script>
+
+
+
+    <script>
+        // Load footer from footer.html
+        fetch('../footer.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('footer-placeholder').innerHTML = data;
+            })
+            .catch(error => console.error('Error loading footer:', error));
+    </script>
+</body>
+
+</html>

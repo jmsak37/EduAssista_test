@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutoring Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Modal styles for skipped questions confirmation and undone orders alert */
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            border-radius: 5px;
+        }
+        /* Styling for undone orders modal */
+        
+        #undoneModal .modal-content {
+            background-color: #fff8e1;
+            border-color: #ffab00;
+        }
+        /* Loading container styling */
+        
+        #loadingContainer {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px auto;
+            width: 80%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        #loadingSection p,
+        #noOrdersMessage p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        
+        #skippedStatus {
+            margin-top: 10px;
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+    <script>
+        let tutoringStartTime;
+        let tutoringInterval;
+        let includeSkippedSelected = false;
+
+        document.addEventListener("DOMContentLoaded", function() {
+            // Load navigation.html into the container
+            fetch('navigation.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("navigationContainer").innerHTML = data;
+                })
+                .catch(error => console.error("Error loading navigation:", error));
+
+            // Fetch subjects (or error) from tutoring.php
+            fetch('tutoring.php')
+                .then(response => response.json())
+                .then(data => {
+                    // Check if an error (undone orders warning) is returned
+                    if (data.error) {
+                        showUndoneModal(data.error, data.redirect);
+                        return;
+                    }
+                    if (data.length > 0) {
+                        let tableHTML = "";
+                        data.forEach(subject => {
+                            tableHTML += `<tr>
+                              <td>${subject.SubjectID}</td>
+                              <td>${subject.Subject}</td>
+                              <td>${subject.ExpertiseArea}</td>
+                              <td><input type="checkbox" class="subjectCheckbox" value="${subject.SubjectID}"></td>
+                            </tr>`;
+                        });
+                        document.getElementById("subjectsTable").innerHTML = tableHTML;
+                    } else {
+                        document.getElementById("subjectsTable").innerHTML = "<tr><td colspan='4'>No subjects found.</td></tr>";
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching subjects:", error);
+                    document.getElementById("subjectsTable").innerHTML = "<tr><td colspan='4'>Error loading subjects.</td></tr>";
+                });
+
+            // "Select All Subjects" button: checks all subject checkboxes.
+            document.getElementById("selectAllSubjectsBtn").addEventListener("click", function() {
+                document.querySelectorAll('.subjectCheckbox').forEach(cb => cb.checked = true);
+            });
+
+            // When "Start Tutoring Session" is clicked:
+            document.getElementById("startTutoringBtn").addEventListener("click", function() {
+                // Hide subject selection and show the loading container.
+                document.getElementById("expertiseSubjects").style.display = "none";
+                document.getElementById("loadingContainer").style.display = "block";
+                startTutoringSession();
+            });
+
+            // When "Change Category" button is clicked:
+            document.getElementById("changeCategoryBtn").addEventListener("click", function() {
+                clearInterval(tutoringInterval); // Stop polling.
+                document.getElementById("loadingContainer").style.display = "none";
+                document.getElementById("expertiseSubjects").style.display = "block";
+            });
+
+            function startTutoringSession() {
+                tutoringStartTime = new Date().getTime();
+                tutoringInterval = setInterval(checkForOrders, 1);
+                startSessionTimer();
+            }
+
+            function checkForOrders() {
+                const param = includeSkippedSelected ? "1" : "0";
+                fetch('getOrders.php?includeSkipped=' + param)
+                    .then(response => response.json())
+                    .then(order => {
+                        if (order && order.order_id) {
+                            window.location.href = "workingwindow.html?order_id=" + order.order_id;
+                        } else {
+                            document.getElementById("loadingSection").style.display = "block";
+                            document.getElementById("noOrdersMessage").style.display = "block";
+                        }
+                    });
+            }
+
+            function startSessionTimer() {
+                setTimeout(() => {
+                    let continueSession = confirm("Do you want to continue tutoring?");
+                    if (!continueSession) {
+                        window.location.href = "tutor_index.html";
+                    } else {
+                        tutoringStartTime = new Date().getTime();
+                        startSessionTimer();
+                    }
+                }, 3600000);
+            }
+
+            // "Include Skipped Questions" button listener.
+            document.getElementById("includeSkippedBtn").addEventListener("click", function() {
+                document.getElementById("skippedModal").style.display = "block";
+            });
+
+            // Modal event listeners for skipped questions.
+            document.getElementById("modalYes").addEventListener("click", function() {
+                includeSkippedSelected = true;
+                document.getElementById("skippedModal").style.display = "none";
+                document.getElementById("skippedStatus").innerText = "Including Skipped Questions";
+                checkForOrders();
+            });
+            document.getElementById("modalNo").addEventListener("click", function() {
+                includeSkippedSelected = false;
+                document.getElementById("skippedModal").style.display = "none";
+                document.getElementById("skippedStatus").innerText = "Not including skipped questions";
+            });
+        });
+
+        // Function to show the undone orders modal and then redirect.
+        function showUndoneModal(message, redirectUrl) {
+            let modal = document.getElementById("undoneModal");
+            modal.style.display = "block";
+            // Optionally update the modal message here if needed.
+            setTimeout(() => {
+                window.location.href = redirectUrl;
+            }, 5000);
+        }
+
+        // Update the clock every 5 seconds.
+        function updateClock() {
+            const now = new Date();
+            document.getElementById("clock").innerText = now.toLocaleTimeString();
+        }
+        setInterval(updateClock, 5000);
+    </script>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <div id="navigationContainer"></div>
+
+    <!-- Top Bar: Username and Clock -->
+    <div class="top-bar">
+        <span id="username">
+      <strong>
+        <?php
+          session_start();
+          echo isset($_SESSION['username']) ? htmlspecialchars($_SESSION['username']) : 'Guest';
+        ?>
+      </strong>
+    </span>
+        <span id="clock"></span>
+    </div>
+
+    <div id="error-message"></div>
+    <h2>Welcome to Your Tutoring Dashboard</h2>
+
+    <!-- Subject Selection Section -->
+    <div id="expertiseSubjects">
+        <h3>Your Subjects</h3>
+        <button id="selectAllSubjectsBtn">Select All Subjects</button>
+        <table>
+            <thead>
+                <tr>
+                    <th>Subject ID</th>
+                    <th>Subject</th>
+                    <th>Expertise Area</th>
+                    <th>Select</th>
+                </tr>
+            </thead>
+            <tbody id="subjectsTable">
+                <!-- Loaded via AJAX from tutoring.php -->
+            </tbody>
+        </table>
+        <button id="startTutoringBtn">Start Tutoring Session</button>
+    </div>
+
+    <!-- Loading Container -->
+    <div id="loadingContainer" style="display: none;">
+        <div id="loadingSection">
+            <p>Checking for available orders...</p>
+            <div class="loader"></div>
+            <button id="includeSkippedBtn" class="btn">CLICK TO Include Skipped Questions</button>
+            <div id="skippedStatus"></div>
+        </div>
+        <div id="noOrdersMessage">
+            <p>There are no new questions in your queue.<br>Change your categories or wait for the next question.</p>
+            <button id="changeCategoryBtn">Change Category</button>
+        </div>
+    </div>
+
+    <!-- Modal for skipped questions confirmation -->
+    <div id="skippedModal" class="modal">
+        <div class="modal-content">
+            <h3>Include Skipped Questions?</h3>
+            <p>Do you want to fetch and review your skipped questions?</p>
+            <button id="modalYes" class="btn">Yes</button>
+            <button id="modalNo" class="btn">No</button>
+        </div>
+    </div>
+
+    <!-- Modal for undone orders warning -->
+    <div id="undoneModal" class="modal">
+        <div class="modal-content">
+            <h3>Pending Orders Alert</h3>
+            <p>You have more than 5 undone orders.</p>
+            <p>Please handle your pending orders first.</p>
+            <p>You will now be redirected to your pending orders page.</p>
+        </div>
+    </div>
+</body>
+
+</html>

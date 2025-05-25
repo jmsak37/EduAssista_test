@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Blogs - EduAssista</title>
+    <link rel="stylesheet" href="styla.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1dbab4;
+        }
+        /* Blogs Table */
+        
+        #blogTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+        }
+        
+        #blogTable,
+        #blogTable th,
+        #blogTable td {
+            border: 1px solid #ddd;
+        }
+        
+        #blogTable th,
+        #blogTable td {
+            padding: 10px;
+            text-align: left;
+        }
+        
+        #blogTable th {
+            background-color: #00796b;
+            color: #fff;
+        }
+        
+        .button {
+            background-color: #00796b;
+            color: #fff;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .button:hover {
+            background-color: #004d40;
+        }
+        /* Full Blog Details Section */
+        
+        #fullBlogSection {
+            margin: 40px auto;
+            max-width: 800px;
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .blogEntry {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        
+        .blogEntry:last-child {
+            border-bottom: none;
+        }
+        
+        .blogMeta {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        /* Comments Section */
+        
+        .commentsSection {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #ccc;
+        }
+        
+        .commentsSection h3 {
+            margin: 10px 0;
+            font-size: 1.1em;
+            color: #00796b;
+        }
+        
+        .commentForm textarea {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            margin-bottom: 5px;
+        }
+        
+        .comment {
+            margin-bottom: 10px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+            position: relative;
+        }
+        
+        .comment p {
+            margin: 0;
+        }
+        
+        .comment .commentMeta {
+            font-size: 0.8em;
+            color: #777;
+            margin-top: 3px;
+        }
+        
+        .deleteCommentBtn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #d9534f;
+            border: none;
+            color: #fff;
+            border-radius: 4px;
+            padding: 2px 5px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        
+        .reply {
+            margin-left: 20px;
+            padding: 5px;
+            border-left: 2px solid #00796b;
+            margin-top: 5px;
+            background: #f1f1f1;
+            position: relative;
+        }
+        
+        .deleteReplyBtn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #d9534f;
+            border: none;
+            color: #fff;
+            border-radius: 4px;
+            padding: 2px 5px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        
+        .replySection textarea {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            margin-bottom: 5px;
+        }
+        /* Notification Modal Styling */
+        
+        #notificationModal {
+            display: none;
+            position: fixed;
+            z-index: 1100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        #notificationModal .modal-content {
+            background-color: #dff0d8;
+            border: 1px solid #d0e9c6;
+            color: #3c763d;
+            margin: 15% auto;
+            padding: 20px;
+            width: 300px;
+            border-radius: 5px;
+            text-align: center;
+            position: relative;
+        }
+        
+        #notificationModal .modal-content .close {
+            color: #3c763d;
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        /* Delete Confirmation Modal Styling */
+        
+        #tempConfirmModal {
+            display: none;
+            position: fixed;
+            z-index: 1200;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        #tempConfirmModal .modal-content {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            color: #333;
+            margin: 15% auto;
+            padding: 20px;
+            width: 300px;
+            border-radius: 5px;
+            text-align: center;
+            position: relative;
+        }
+        
+        #tempConfirmModal .modal-content h3 {
+            margin-top: 0;
+        }
+        
+        #tempConfirmModal .modal-content button {
+            margin: 10px 5px 0;
+        }
+    </style>
+    <script>
+        // Load blogs from blogs.php and load comments for each blog.
+        function loadBlogs() {
+            fetch("blogs.php?action=list")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const tbody = document.querySelector("#blogTable tbody");
+                        tbody.innerHTML = "";
+                        data.blogs.forEach(blog => {
+                            let tr = document.createElement("tr");
+                            tr.innerHTML = `<td>${blog.BlogID}</td>
+                <td>${blog.BlogTitle}</td>
+                <td>${blog.AuthorName ? "author " + blog.AuthorName : "author User" + blog.AuthorID}</td>
+                <td>${blog.CreatedAt}</td>
+                <td>${blog.date}</td>
+                <td>${blog.attarchement ? blog.attarchement : ""}</td>
+                <td>
+                  <button class="button viewBtn" data-blogid="${blog.BlogID}">View</button>
+                  <button class="button deleteBtn" data-blogid="${blog.BlogID}">Delete</button>
+                </td>`;
+                            tbody.appendChild(tr);
+                        });
+                        attachBlogActions();
+
+                        // Populate the full blog details section.
+                        const fullSection = document.getElementById("fullBlogSection");
+                        fullSection.innerHTML = "";
+                        data.blogs.forEach(blog => {
+                            let div = document.createElement("div");
+                            div.className = "blogEntry";
+                            div.id = "blog-" + blog.BlogID;
+                            let processedContent = blog.BlogContent.replace(/\[video\](.*?)\[\/video\]/gi, function(match, p1) {
+                                return '<video controls width="600"><source src="' + p1 + '" type="video/mp4">Your browser does not support the video tag.</video>';
+                            });
+                            div.innerHTML = `<h2>${blog.BlogTitle}</h2>
+                <p class="blogMeta">Posted on ${blog.date} by author ${blog.AuthorName ? blog.AuthorName : "User" + blog.AuthorID}</p>
+                <div class="blogContent">${processedContent}</div>`;
+                            // Attach attachments.
+                            if (blog.attarchement) {
+                                let attArray = blog.attarchement.split(",");
+                                attArray.forEach(att => {
+                                    let ext = att.split('.').pop().toLowerCase();
+                                    if (ext === "pdf") {
+                                        div.innerHTML += `<embed src="blogs/${att}" width="800" height="600" type="application/pdf">`;
+                                    } else {
+                                        div.innerHTML += `<a href="blogs/${att}" target="_blank">${att}</a>`;
+                                    }
+                                });
+                            }
+                            // Comments Section: auto-load comments.
+                            div.innerHTML += `
+                <div class="commentsSection" data-blogid="${blog.BlogID}">
+                  <h3>Comments</h3>
+                  <div class="commentForm">
+                    <textarea placeholder="Write a comment..." class="commentText" style="width:100%;"></textarea>
+                    <button class="button submitCommentBtn" data-blogid="${blog.BlogID}">Comment</button>
+                  </div>
+                  <div class="commentsList"></div>
+                </div>
+              `;
+                            fullSection.appendChild(div);
+                            // Immediately load comments for this blog.
+                            let container = div.querySelector(".commentsList");
+                            loadComments(blog.BlogID, container);
+                        });
+                        attachBlogActions();
+                        attachCommentActions();
+                    } else {
+                        showNotification("Failed to load blogs: " + data.message);
+                    }
+                })
+                .catch(error => console.error("Error loading blogs:", error));
+        }
+
+        function attachBlogActions() {
+            document.querySelectorAll(".viewBtn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const blogID = this.getAttribute("data-blogid");
+                    viewBlog(blogID);
+                });
+            });
+            document.querySelectorAll(".deleteBtn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const blogID = this.getAttribute("data-blogid");
+                    document.getElementById("tempConfirmModal").style.display = "block";
+                    document.getElementById("tempConfirmMessage").textContent = "Delete blog " + blogID + "?";
+                    document.getElementById("tempConfirmYes").onclick = function() {
+                        document.getElementById("tempConfirmModal").style.display = "none";
+                        fetch("blogs.php?action=delete&blogID=" + blogID)
+                            .then(response => response.json())
+                            .then(data => {
+                                showNotification(data.message);
+                                loadBlogs();
+                            })
+                            .catch(error => console.error("Error deleting blog:", error));
+                    };
+                    document.getElementById("tempConfirmNo").onclick = function() {
+                        document.getElementById("tempConfirmModal").style.display = "none";
+                    };
+                });
+            });
+        }
+
+        function viewBlog(blogID) {
+            let blogElem = document.getElementById("blog-" + blogID);
+            if (blogElem) {
+                blogElem.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+                blogElem.style.backgroundColor = "#f0f8ff";
+                setTimeout(() => {
+                    blogElem.style.backgroundColor = "";
+                }, 2000);
+            }
+        }
+
+        // Comment functionality.
+        function attachCommentActions() {
+            document.querySelectorAll(".submitCommentBtn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    let blogID = this.getAttribute("data-blogid");
+                    let commentForm = this.parentElement;
+                    let commentText = commentForm.querySelector(".commentText").value.trim();
+                    if (commentText !== "") {
+                        fetch("comment.php?action=addComment", {
+                                method: "POST",
+                                body: new URLSearchParams({
+                                    blogID: blogID,
+                                    commentMessage: commentText
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                console.log("Add comment response:", data);
+                                if (data.success) {
+                                    let container = commentForm.parentElement.querySelector(".commentsList");
+                                    loadComments(blogID, container);
+                                    commentForm.querySelector(".commentText").value = "";
+                                } else {
+                                    let container = commentForm.parentElement.querySelector(".commentsList");
+                                    container.innerHTML = `<p style="color:red;">Error: ${data.message}</p>`;
+                                }
+                            })
+                            .catch(error => {
+                                console.error("Error adding comment:", error);
+                                let container = commentForm.parentElement.querySelector(".commentsList");
+                                container.innerHTML = `<p style="color:red;">Error adding comment.</p>`;
+                            });
+                    }
+                });
+            });
+        }
+
+        function loadComments(blogID, container) {
+            fetch("comment.php?action=listComments&blogID=" + blogID)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        container.innerHTML = "";
+                        if (data.comments.length > 0) {
+                            data.comments.forEach(comment => {
+                                let commenter = comment.UserName ? comment.UserName : ("User" + comment.UserID);
+                                let commentDiv = document.createElement("div");
+                                commentDiv.className = "comment";
+                                let innerHTML = `<p>${comment.CommentMessage}</p>
+                  <div class="commentMeta">Commented by ${commenter} on ${comment.CreatedAt}</div>
+                  <button class="button deleteCommentBtn" data-commentid="${comment.CommentID}">Delete Comment</button>
+                  <button class="button replyBtn">Reply</button>`;
+                                // If replies exist, list them.
+                                if (comment.replies && comment.replies.length > 0) {
+                                    innerHTML += `<div class="replyContainer">`;
+                                    comment.replies.forEach(reply => {
+                                        let repUser = reply.UserName_replied ? reply.UserName_replied : ("User" + reply.UserID_replied);
+                                        innerHTML += `<div class="reply">
+                      <p>${reply.ReplyMessage}</p>
+                      <div class="commentMeta">Replied by ${repUser} on ${reply.CreatedAt}</div>
+                      <button class="button deleteReplyBtn" data-replyid="${reply.ReplyID}">Delete Reply</button>
+                    </div>`;
+                                    });
+                                    innerHTML += `</div>`;
+                                }
+                                // Add reply form.
+                                innerHTML += `<div class="replySection" style="display:none;">
+                  <textarea placeholder="Write a reply..." class="replyText" style="width:100%;"></textarea>
+                  <button class="button submitReplyBtn" data-commentid="${comment.CommentID}">Submit Reply</button>
+                </div>`;
+                                commentDiv.innerHTML = innerHTML;
+                                container.appendChild(commentDiv);
+                            });
+                        }
+                        attachDynamicCommentActions(container);
+                    } else {
+                        container.innerHTML = `<p style="color:red;">Error loading comments: ${data.message}</p>`;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error loading comments:", error);
+                    container.innerHTML = `<p style="color:red;">Error loading comments.</p>`;
+                });
+        }
+
+        function attachDynamicCommentActions(container) {
+            container.querySelectorAll(".replyBtn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    let replySection = this.parentElement.querySelector(".replySection");
+                    replySection.style.display = (replySection.style.display === "none") ? "block" : "none";
+                });
+            });
+            container.querySelectorAll(".submitReplyBtn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    let commentID = this.getAttribute("data-commentid");
+                    let replyText = this.parentElement.querySelector(".replyText").value.trim();
+                    if (replyText !== "") {
+                        fetch("comment.php?action=addReply", {
+                                method: "POST",
+                                body: new URLSearchParams({
+                                    commentID: commentID,
+                                    replyMessage: replyText
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    let blogID = this.closest(".blogEntry").id.split("-")[1];
+                                    let commentsList = this.closest(".commentsSection").querySelector(".commentsList");
+                                    loadComments(blogID, commentsList);
+                                } else {
+                                    showNotification(data.message);
+                                }
+                            })
+                            .catch(error => console.error("Error adding reply:", error));
+                    }
+                });
+            });
+            container.querySelectorAll(".deleteCommentBtn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    let commentID = this.getAttribute("data-commentid");
+                    fetch("comment.php?action=deleteComment&commentID=" + commentID)
+                        .then(response => response.json())
+                        .then(data => {
+                            let blogID = this.closest(".blogEntry").id.split("-")[1];
+                            let commentsList = this.closest(".commentsSection").querySelector(".commentsList");
+                            loadComments(blogID, commentsList);
+                        })
+                        .catch(error => console.error("Error deleting comment:", error));
+                });
+            });
+            container.querySelectorAll(".deleteReplyBtn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    let replyID = this.getAttribute("data-replyid");
+                    fetch("comment.php?action=deleteReply&replyID=" + replyID)
+                        .then(response => response.json())
+                        .then(data => {
+                            let blogID = this.closest(".blogEntry").id.split("-")[1];
+                            let commentsList = this.closest(".commentsSection").querySelector(".commentsList");
+                            loadComments(blogID, commentsList);
+                        })
+                        .catch(error => console.error("Error deleting reply:", error));
+                });
+            });
+        }
+
+        function showNotification(message) {
+            document.getElementById("notificationMessage").textContent = message;
+            document.getElementById("notificationModal").style.display = "block";
+            setTimeout(() => {
+                document.getElementById("notificationModal").style.display = "none";
+            }, 3000);
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById("notificationModal")) {
+                document.getElementById("notificationModal").style.display = "none";
+            }
+            if (event.target == document.getElementById("tempConfirmModal")) {
+                document.getElementById("tempConfirmModal").style.display = "none";
+            }
+        };
+
+        window.onload = loadBlogs;
+    </script>
+</head>
+
+<body>
+    <h1>Blogs</h1>
+    <!-- Add Blog Button -->
+    <button class="button" onclick="location.href='addBlog.html'">Add Blog</button>
+
+    <!-- Blogs Table -->
+    <table id="blogTable">
+        <thead>
+            <tr>
+                <th>BlogID</th>
+                <th>Blog Title</th>
+                <th>Author</th>
+                <th>Created At</th>
+                <th>Date</th>
+                <th>Attachment</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Populated dynamically -->
+        </tbody>
+    </table>
+
+    <!-- Full Blog Details Section -->
+    <div id="fullBlogSection"></div>
+
+    <!-- Notification Modal -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content">
+            <span id="notificationClose" class="close">&times;</span>
+            <p id="notificationMessage"></p>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="tempConfirmModal" class="modal">
+        <div class="modal-content">
+            <h3 id="tempConfirmMessage">Are you sure?</h3>
+            <button id="tempConfirmYes" class="button">Yes</button>
+            <button id="tempConfirmNo" class="button">No</button>
+        </div>
+    </div>
+</body>
+
+</html>

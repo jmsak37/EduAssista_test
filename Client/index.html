@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style2.css">
+    <style>
+        /* CSS for the progress circles */
+        
+        .progress-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            position: relative;
+            margin: 10px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: #000;
+        }
+        
+        .progress-circle-container {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        /* Additional CSS for the subnavigation area */
+        
+        .subnavigation {
+            padding: 10px 20px;
+            background-color: #fafafa;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .subnavigation ul {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 10px 0;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .subnavigation ul li a {
+            text-decoration: none;
+            color: #007BFF;
+            font-weight: bold;
+        }
+        /* Notification badge style */
+        
+        .notification-badge {
+            display: inline-block;
+            min-width: 20px;
+            padding: 2px 6px;
+            font-size: 12px;
+            font-weight: bold;
+            color: red;
+            background-color: #fff;
+            border: 1px solid red;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .username {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        /* New box for displaying the user balance */
+        
+        #user-balance-box {
+            font-size: 16px;
+            padding: 5px 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+        
+        #user-balance-box a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        
+        #user-balance-box a:hover {
+            text-decoration: underline;
+        }
+        /* Updated container to stretch full width */
+        
+        .container {
+            width: 100%;
+            margin: 0;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .content {
+            margin-top: 80px;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .username-display {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        /* Grid layout for the main boxes */
+        
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 20px;
+        }
+        /* Make Our Services span two columns */
+        
+        .our-services {
+            grid-column: span 2;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation Section -->
+    <div id="nav-placeholder"></div>
+
+    <!-- Subnavigation -->
+    <div class="subnavigation" id="subnavigation">
+        <ul>
+            <li><a href="tutorrequest.html">TUTOR REQUEST</a></li>
+            <li><a href="clarification.html">Clarification Orders</a></li>
+            <li>
+                <a href="notifications.html">Notifications
+          <span id="notifBadge" class="notification-badge"></span>
+        </a>
+            </li>
+            <li><a href="logout.php">LOGOUT</a></li>
+        </ul>
+        <div class="username" id="username">
+            Hello, <span id="user-name">Loading...</span>
+        </div>
+        <!-- New user balance box -->
+        <div id="user-balance-box">
+            Loading balance...
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <div class="container">
+            <!-- Grid container with two boxes at the top -->
+            <div class="grid-container">
+                <!-- Box 1: Active Orders -->
+                <div class="box" id="order-progress-box">
+                    <h2>Active Orders</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Order Name</th>
+                                <th>Subject</th>
+                                <th>Progress</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-progress-table">
+                            <tr>
+                                <td colspan="4">Loading orders...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Box 2: Your Request Orders -->
+                <div class="box" id="request-orders-box">
+                    <h2>Your Request Orders</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Request ID</th>
+                                <th>Tutor ID</th>
+                                <th>Subject</th>
+                                <th>Message</th>
+                                <th>Deadline</th>
+                            </tr>
+                        </thead>
+                        <tbody id="request-orders-table">
+                            <tr>
+                                <td colspan="5">Loading request orders...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Box 3: Our Services (spans both columns) -->
+                <div class="box our-services" id="last-orders-box">
+                    <h2>Our Services</h2>
+                    <ul>
+                        <li><a href="../services.html">services</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Section -->
+    <div id="footer-placeholder"></div>
+
+    <script>
+        // Function to load external HTML content
+        function loadHTML(id, url) {
+            const placeholder = document.getElementById(id);
+            fetch(url)
+                .then(response => response.text())
+                .then(data => placeholder.innerHTML = data)
+                .catch(error => console.error('Error loading ' + url, error));
+        }
+
+        // Fetch session user data and display username and balance
+        function fetchSessionUser() {
+            fetch('index.php?action=getUserData')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('user-name').textContent = 'Guest';
+                        document.getElementById('user-balance-box').innerHTML = '<a href="dipost.html">Balance: $0.00<br>(Please deposit to place an order)</a>';
+                    } else {
+                        document.getElementById('user-name').textContent = data.username;
+                        let rawBalance = parseFloat(data.balance);
+                        let displayBalance = (rawBalance > 99999999.99) ? "100000000 and more" : "$" + rawBalance.toFixed(2);
+                        // Set the link to moneyusage.html if balance is at least $1; otherwise link to dipost.html
+                        let linkHref = rawBalance < 1 ? "dipost.html" : "moneyusage.html";
+                        document.getElementById('user-balance-box').innerHTML = `<a id="balance-link" href="${linkHref}">Balance: ${displayBalance}</a>`;
+                        // Fetch additional data (active orders and request orders) using the user's ID
+                        fetchActiveOrders(data.userID);
+                        fetchRequestOrders(data.userID);
+                    }
+                })
+                .catch(error => console.error('Error fetching user data:', error));
+        }
+
+        // Fetch active orders for the logged-in user
+        function fetchActiveOrders(clientID) {
+            fetch(`index.php?action=getActiveOrders&clientID=${clientID}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('orders-progress-table');
+                    tableBody.innerHTML = '';
+                    if (data.error) {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td colspan="4">${data.error}</td>`;
+                        tableBody.appendChild(row);
+                    } else {
+                        data.orders.forEach(order => {
+                            // If order.status is 'skipped' (case-insensitive), display nothing in the circle.
+                            let circleText = (order.status.toLowerCase() === "skipped") ? "" : order.status;
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${order.order_id}</td>
+                                <td>${order.name}</td>
+                                <td>${order.subject}</td>
+                                <td>
+                                  <div class="progress-circle-container">
+                                    <div class="progress-circle" style="background: conic-gradient(#66cc66 25%, #e0e0e0 25%);">
+                                      ${circleText}
+                                    </div>
+                                  </div>
+                                </td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error fetching active orders:', error));
+        }
+
+        // Fetch request orders for the logged-in user from the request table.
+        function fetchRequestOrders(clientID) {
+            fetch(`index.php?action=getRequestOrders&clientID=${clientID}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('request-orders-table');
+                    tableBody.innerHTML = '';
+                    if (data.error) {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td colspan="5">${data.error}</td>`;
+                        tableBody.appendChild(row);
+                    } else {
+                        data.orders.forEach(order => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${order.order_id}</td>
+                                <td>${order.tutor_id}</td>
+                                <td>${order.subject}</td>
+                                <td>${order.description}</td>
+                                <td>${order.deadline}</td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error fetching request orders:', error));
+        }
+
+        // Update notification badge every second
+        function updateNotificationBadge() {
+            fetch('notifications.php?action=getNotifications')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('notifBadge');
+                    if (data && typeof data.new_count !== "undefined" && data.new_count > 0) {
+                        badge.textContent = data.new_count;
+                    } else {
+                        badge.textContent = "";
+                    }
+                })
+                .catch(error => console.error("Error fetching notifications count:", error));
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHTML("nav-placeholder", "navigation.html");
+            loadHTML("footer-placeholder", "footer.html");
+            fetchSessionUser();
+            updateNotificationBadge();
+            setInterval(updateNotificationBadge, 1000); // update every second
+        });
+
+        // Check every 5 seconds if the current session user is still valid
+        setInterval(function() {
+            fetch('checkUserRole.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        window.location.href = "../login.html";
+                    }
+                })
+                .catch(error => {
+                    console.error("Error checking user role:", error);
+                    window.location.href = "../login.html";
+                });
+        }, 5000);
+    </script>
+</body>
+
+</html>

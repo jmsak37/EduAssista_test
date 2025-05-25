@@ -1,0 +1,14 @@
+// Check every 5 seconds if the current session user is still valid
+setInterval(function() {
+    fetch('checkUserRole.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                window.location.href = "../login.html";
+            }
+        })
+        .catch(error => {
+            console.error("Error checking user role:", error);
+            window.location.href = "../login.html";
+        });
+}, 5000);

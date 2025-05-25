@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Samples</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="navigation.html"></script>
+    <script src="footer.html"></script>
+    <script>
+        // Load navigation bar from navigation.html
+        fetch('navigation.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-placeholder').innerHTML = data;
+            })
+            .catch(error => console.error('Error loading navigation:', error));
+
+        // Load footer from footer.html
+        fetch('footer.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('footer-placeholder').innerHTML = data;
+            })
+            .catch(error => console.error('Error loading footer:', error));
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .sample-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sample {
+            margin-bottom: 20px;
+        }
+        
+        .sample h2 {
+            margin-top: 0;
+        }
+        
+        .sample p {
+            margin-bottom: 10px;
+        }
+        
+        .sample .date {
+            color: #888;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar-placeholder"></div>
+
+    <div class="sample-container" id="samplesContainer">
+        <h1>Latest Samples</h1>
+        <!-- Sample items will be dynamically inserted here -->
+    </div>
+
+    <div id="footer-placeholder"></div>
+
+    <script>
+        // Function to fetch samples from the server
+        function fetchSamples() {
+            fetch('getSamples.php')
+                .then(response => response.json())
+                .then(data => {
+                    const samplesContainer = document.getElementById('samplesContainer');
+                    samplesContainer.innerHTML = ''; // Clear previous content
+
+                    if (data.error) {
+                        samplesContainer.innerHTML = `<p>Error: ${data.error}</p>`;
+                        return;
+                    }
+
+                    if (data.length === 0) {
+                        samplesContainer.innerHTML += '<p>No samples available.</p>';
+                        return;
+                    }
+
+                    data.forEach(sample => {
+                        const sampleDiv = document.createElement('div');
+                        sampleDiv.classList.add('sample');
+
+                        const sampleName = document.createElement('h2');
+                        sampleName.textContent = sample.SampleName;
+                        sampleDiv.appendChild(sampleName);
+
+                        const sampleDescription = document.createElement('p');
+                        sampleDescription.textContent = sample.SampleDescription;
+                        sampleDiv.appendChild(sampleDescription);
+
+                        const sampleDate = document.createElement('p');
+                        sampleDate.classList.add('date');
+                        sampleDate.textContent = `Published on: ${new Date(sample.CreatedAt).toLocaleDateString()}`;
+                        sampleDiv.appendChild(sampleDate);
+
+                        samplesContainer.appendChild(sampleDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching samples:', error);
+                    document.getElementById('samplesContainer').innerHTML = '<p>There was an error loading the samples.</p>';
+                });
+        }
+
+        // Fetch samples when the page loads
+        document.addEventListener('DOMContentLoaded', fetchSamples);
+    </script>
+</body>
+
+
+
+</html>

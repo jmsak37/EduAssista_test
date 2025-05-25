@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plagiarism Checker</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="navigation.html"></script>
+    <script src="footer.html"></script>
+    <style>
+        /* Add your CSS styles here */
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+        }
+        
+        form {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+            flex: 1 1 100%;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .form-group textarea,
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .form-group textarea {
+            height: 200px;
+        }
+        
+        .form-group input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .form-group input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        
+        .result {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .result table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .result table,
+        .result th,
+        .result td {
+            border: 1px solid #ddd;
+        }
+        
+        .result th,
+        .result td {
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .result .loading {
+            display: none;
+        }
+        
+        .result .loading img {
+            width: 50px;
+            height: 50px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar-placeholder"></div>
+    <div class="container">
+        <h1>Plagiarism Checker</h1>
+        <form id="plagiarismForm" action="plagiarism_check.php" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="textContent">Paste your text here:</label>
+                <textarea id="textContent" name="textContent" placeholder="Paste your text here..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="fileUpload">Or upload a document:</label>
+                <input type="file" id="fileUpload" name="fileUpload" accept=".txt,.doc,.docx,.pdf">
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Check Plagiarism">
+            </div>
+            <div id="result" class="result">
+                <div class="loading">
+                    <img src="loading-spinner.gif" alt="Loading...">
+                    <!-- Ensure you have a loading spinner image -->
+                </div>
+                <table id="resultTable">
+                    <thead>
+                        <tr>
+                            <th>Check Type</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Results will be injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </div>
+    <div id="footer-placeholder"></div>
+
+    <script>
+        // Load navigation bar from navigation.html
+        fetch('navigation.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-placeholder').innerHTML = data;
+            })
+            .catch(error => console.error('Error loading navigation:', error));
+
+
+        document.getElementById('plagiarismForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            var formData = new FormData(this);
+            var resultDiv = document.getElementById('result');
+            var loadingDiv = document.querySelector('.loading');
+            var resultTable = document.getElementById('resultTable').getElementsByTagName('tbody')[0];
+
+            // Show loading spinner
+            loadingDiv.style.display = 'block';
+            resultTable.innerHTML = ''; // Clear previous results
+
+            fetch('plagiarism_check.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loadingDiv.style.display = 'none'; // Hide loading spinner
+                    if (data.success) {
+                        resultTable.innerHTML = `
+                        <tr>
+                            <td>Plagiarism Check</td>
+                            <td>${data.message}</td>
+                        </tr>
+                    `;
+                    } else {
+                        resultTable.innerHTML = `
+                        <tr>
+                            <td>Error</td>
+                            <td>${data.message}</td>
+                        </tr>
+                    `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    loadingDiv.style.display = 'none'; // Hide loading spinner
+                    resultTable.innerHTML = `
+                    <tr>
+                        <td>Error</td>
+                        <td>There was an error checking the plagiarism.</td>
+                    </tr>
+                `;
+                });
+        });
+    </script>
+</body>
+
+</html>

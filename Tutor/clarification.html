@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Clarification Orders</title>
+    <link rel="stylesheet" href="style4.css">
+    <style>
+        /* General container and table styles */
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .order-name a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        .order-name a:hover {
+            text-decoration: underline;
+        }
+        /* Modal popup for action selection */
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 50%;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        /* Clarification modal: big box (half screen) */
+        
+        #clarifyModal .modal-content {
+            width: 50%;
+            height: 50vh;
+            overflow-y: auto;
+        }
+        
+        .modal-buttons button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .btn-redo {
+            background-color: #27ae60;
+            color: #fff;
+        }
+        
+        .btn-clarify {
+            background-color: #f39c12;
+            color: #fff;
+        }
+        /* Clarification form styles */
+        
+        .clarify-form {
+            margin-top: 20px;
+            text-align: left;
+        }
+        
+        .clarify-form label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .clarify-form textarea {
+            width: 100%;
+            height: 40vh;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+        }
+        
+        .btn-submit {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        /* Initially hide working sections */
+        
+        #answerSection,
+        #explanationSection {
+            display: none;
+            margin-top: 10px;
+        }
+        
+        /* --- New CSS for a modern workplace and baton (buttons) --- */
+        
+        .workplace-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* Global button styling */
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 6px;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        
+        .btn:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+        
+        .btn:active {
+            background-color: #004494;
+            transform: scale(0.98);
+        }
+        
+        /* Specific button classes overriding the global style */
+        .btn-accept {
+            background-color: #28a745;
+        }
+        
+        .btn-accept:hover {
+            background-color: #218838;
+        }
+        
+        .btn-clarify {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-clarify:hover {
+            background-color: #e0a800;
+        }
+        
+        .btn-rease {
+            background-color: #17a2b8;
+        }
+        
+        .btn-rease:hover {
+            background-color: #138496;
+        }
+        
+        .btn-tutor {
+            background-color: #6f42c1;
+        }
+        
+        .btn-tutor:hover {
+            background-color: #593196;
+        }
+        
+        .btn-cancel {
+            background-color: #dc3545;
+        }
+        
+        .btn-cancel:hover {
+            background-color: #c82333;
+        }
+    </style>
+    <script>
+        // Utility: get URL parameter by name.
+        function getParameterByName(name) {
+            const url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+        let clarificationOrders = []; // Global array for clarification orders.
+        let selectedOrder = null; // Currently selected order.
+
+        document.addEventListener("DOMContentLoaded", function() {
+            fetchClarificationOrders();
+
+            document.getElementById("closeModalBtn").addEventListener("click", closeActionModal);
+            document.getElementById("redoBtn").addEventListener("click", doRedo);
+            document.getElementById("clarifyBtn").addEventListener("click", showClarifyForm);
+            document.getElementById("submitClarificationBtn").addEventListener("click", submitClarification);
+            document.getElementById("cancelClarificationBtn").addEventListener("click", closeClarifyModal);
+
+            // Show/hide clarification textareas based on radio selection.
+            document.querySelectorAll('input[name="clarifyOption"]').forEach(radio => {
+                radio.addEventListener("change", function() {
+                    let val = this.value;
+                    document.getElementById("answerSection").style.display = (val === "answer" || val === "both") ? "block" : "none";
+                    document.getElementById("explanationSection").style.display = (val === "explanation" || val === "both") ? "block" : "none";
+                    checkClarificationFields(); // re-check to enable/disable submit.
+                });
+            });
+
+            // Monitor textareas for enabling/disabling the submit button.
+            document.getElementById("answerClarification").addEventListener("input", checkClarificationFields);
+            document.getElementById("explanationClarification").addEventListener("input", checkClarificationFields);
+        });
+
+        // Helper function to count words in a string.
+        function countWords(str) {
+            return str.trim().split(/\s+/).filter(word => word.length > 0).length;
+        }
+
+        // Enable submit button only when required fields are non-empty.
+        function checkClarificationFields() {
+            const option = document.querySelector('input[name="clarifyOption"]:checked');
+            const submitBtn = document.getElementById("submitClarificationBtn");
+            if (!option) {
+                submitBtn.disabled = true;
+                return;
+            }
+            if (option.value === "answer") {
+                submitBtn.disabled = (document.getElementById("answerClarification").value.trim() === "");
+            } else if (option.value === "explanation") {
+                submitBtn.disabled = (document.getElementById("explanationClarification").value.trim() === "");
+            } else if (option.value === "both") {
+                submitBtn.disabled = (document.getElementById("answerClarification").value.trim() === "" ||
+                    document.getElementById("explanationClarification").value.trim() === "");
+            }
+        }
+
+        // Fetch orders from clarification.php.
+        function fetchClarificationOrders() {
+            fetch('clarification.php')
+                .then(response => response.json())
+                .then(data => {
+                    clarificationOrders = data;
+                    displayClarificationTable(data);
+                })
+                .catch(error => {
+                    console.error("Error fetching clarification orders:", error);
+                    document.getElementById("clarificationContainer").innerHTML = "<p>Error loading orders.</p>";
+                });
+        }
+
+        // Display orders in a table.
+        function displayClarificationTable(orders) {
+            let html = "<table><thead><tr>" +
+                "<th>Order ID</th>" +
+                "<th>Client ID</th>" +
+                "<th>Subject</th>" +
+                "<th>Name</th>" +
+                "<th>Deadline</th>" +
+                "<th>Clarification</th>" +
+                "</tr></thead><tbody>";
+            orders.forEach(order => {
+                let nameLink = "<span class='order-name'><a href='#' onclick='openActionModal(" + order.order_id + "); return false;'>" + order.name + "</a></span>";
+                html += "<tr>" +
+                    "<td>" + order.order_id + "</td>" +
+                    "<td>" + order.client_id + "</td>" +
+                    "<td>" + order.subject + "</td>" +
+                    "<td>" + nameLink + "</td>" +
+                    "<td>" + order.deadline + "</td>" +
+                    "<td>" + order.clarification + "</td>" +
+                    "</tr>";
+            });
+            html += "</tbody></table>";
+            document.getElementById("clarificationContainer").innerHTML = html;
+        }
+
+        // Open action modal when an order is clicked.
+        function openActionModal(orderId) {
+            selectedOrder = clarificationOrders.find(o => o.order_id == orderId);
+            if (!selectedOrder) return;
+            document.getElementById("actionModal").style.display = "block";
+        }
+
+        function closeActionModal() {
+            document.getElementById("actionModal").style.display = "none";
+        }
+
+        // "Do It Again" action.
+        function doRedo() {
+            if (!selectedOrder) return;
+            fetch('clarification.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: "redo",
+                        order_id: selectedOrder.order_id
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Redirect to the working page.
+                        window.location.href = "openclarification.html?order_id=" + selectedOrder.order_id;
+                    } else {
+                        alert("Error: " + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error in redo action:", error);
+                    alert("An error occurred during the Do It Again process.");
+                });
+        }
+
+        // "Clarify Here" action.
+        function showClarifyForm() {
+            closeActionModal();
+            // Clear the existing page content and create a full-page clarification form.
+            document.body.innerHTML = "";
+            const container = document.createElement("div");
+            container.className = "workplace-container";
+            container.innerHTML = `
+                <h2>Clarification Form</h2>
+                <p>Please select what you want to clarify:</p>
+                <div>
+                    <label><input type="radio" name="clarifyOption" value="answer"> Answer Only</label>
+                    <label><input type="radio" name="clarifyOption" value="explanation"> Explanation Only</label>
+                    <label><input type="radio" name="clarifyOption" value="both"> Both</label>
+                </div>
+                <div id="clarifyForm">
+                    <div id="answerSection" style="display:none; margin-top:10px;">
+                        <label>Answer Clarification:</label>
+                        <textarea id="answerClarification" placeholder="Enter your answer clarification..." style="width:100%; height:60vh;"></textarea>
+                    </div>
+                    <div id="explanationSection" style="display:none; margin-top:10px;">
+                        <label>Explanation Clarification:</label>
+                        <textarea id="explanationClarification" placeholder="Enter your explanation clarification..." style="width:100%; height:60vh;"></textarea>
+                    </div>
+                </div>
+                <button id="submitClarificationBtn" class="btn" style="margin-top:20px;" disabled>Submit Clarification</button>
+            `;
+            document.body.appendChild(container);
+            // Add event listeners for the new clarification form.
+            document.querySelectorAll('input[name="clarifyOption"]').forEach(radio => {
+                radio.addEventListener("change", function() {
+                    let val = this.value;
+                    document.getElementById("answerSection").style.display = (val === "answer" || val === "both") ? "block" : "none";
+                    document.getElementById("explanationSection").style.display = (val === "explanation" || val === "both") ? "block" : "none";
+                    checkClarificationFields();
+                });
+            });
+            document.getElementById("answerClarification").addEventListener("input", checkClarificationFields);
+            document.getElementById("explanationClarification").addEventListener("input", checkClarificationFields);
+            document.getElementById("submitClarificationBtn").addEventListener("click", submitClarification);
+        }
+
+        function closeClarifyModal() {
+            // In full-screen mode, simply clear the page content.
+            document.body.innerHTML = "";
+        }
+
+        // Submit clarification: update clarification via clarificiation.php.
+        function submitClarification() {
+            const option = document.querySelector('input[name="clarifyOption"]:checked');
+            if (!option) {
+                alert("Please select an option for clarification.");
+                return;
+            }
+            // Validate that the entered text has at least 100 words.
+            if (option.value === "answer" || option.value === "both") {
+                const answerText = document.getElementById("answerClarification").value.trim();
+                if (countWords(answerText) < 100) {
+                    alert("Please enter at least 100 words for answer clarification.");
+                    return;
+                }
+            }
+            if (option.value === "explanation" || option.value === "both") {
+                const explanationText = document.getElementById("explanationClarification").value.trim();
+                if (countWords(explanationText) < 100) {
+                    alert("Please enter at least 100 words for explanation clarification.");
+                    return;
+                }
+            }
+            let clarifyData = {
+                order_id: selectedOrder.order_id,
+                action: "clarify",
+                answerClarification: "",
+                explanationClarification: ""
+            };
+            if (option.value === "answer" || option.value === "both") {
+                clarifyData.answerClarification = document.getElementById("answerClarification").value.trim();
+            }
+            if (option.value === "explanation" || option.value === "both") {
+                clarifyData.explanationClarification = document.getElementById("explanationClarification").value.trim();
+            }
+            fetch('clarification.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(clarifyData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Show thank you message for clarifying.
+                        document.body.innerHTML = "<h2 style='text-align:center; margin-top:40vh;'>Thank you for clarifying!</h2>";
+                        setTimeout(function() {
+                            window.location.href = "tutor_index.html";
+                        }, 3000);
+                    } else {
+                        alert("Error: " + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error submitting clarification:", error);
+                    alert("An error occurred while submitting clarification.");
+                });
+        }
+    </script>
+</head>
+
+<body>
+    <h2>Clarification Orders</h2>
+    <div class="container" id="clarificationContainer">
+        <!-- Clarification table will be rendered here -->
+    </div>
+    <!-- Modal for choosing action on order -->
+    <div id="actionModal" class="modal">
+        <div class="modal-content">
+            <p>Do you want to do the full order again or clarify it here?</p>
+            <div class="modal-buttons">
+                <button id="redoBtn" class="btn btn-redo">Do It Again</button>
+                <button id="clarifyBtn" class="btn btn-clarify">Clarify Here</button>
+            </div>
+            <button id="closeModalBtn" class="btn" style="margin-top:10px;">Close</button>
+        </div>
+    </div>
+</body>
+
+</html>

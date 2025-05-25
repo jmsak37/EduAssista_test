@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Success</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        
+        .success-message {
+            font-size: 1.5em;
+            color: green;
+        }
+        
+        .success-message h1 {
+            margin-bottom: 20px;
+        }
+        
+        .success-message p a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        .success-message p a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="success-message">
+        <h1>Order Placed Successfully!</h1>
+        <p>Thank you for placing your order. </p>
+    </div>
+
+    <script>
+        // Redirect to index.html after 5 seconds
+        setTimeout(function() {
+            window.location.href = 'index.html';
+        }, 5000); // Redirect after 5 seconds (5000 milliseconds)
+    </script>
+</body>
+
+</html>

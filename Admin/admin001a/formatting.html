@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Formatting Toolbar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        /* Container for the entire toolbar */
+        
+        #formattingToolbar {
+            border: 1px solid #ccc;
+            background: #f9f9f9;
+            padding: 5px;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        /* Each group container */
+        
+        .group {
+            margin-bottom: 10px;
+        }
+        /* Group header styling */
+        
+        .group-header {
+            background-color: #00796b;
+            color: white;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+        
+        .group-header:hover {
+            background-color: #005f50;
+        }
+        /* Arrow icon */
+        
+        .arrow {
+            transition: transform 0.3s ease;
+        }
+        
+        .group-header.active .arrow {
+            transform: rotate(90deg);
+        }
+        /* Group content styling with slide-down effect */
+        
+        .group-content {
+            max-height: 0px;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease;
+            background: #f1f1f1;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            padding: 0 5px;
+        }
+        /* When expanded, some extra padding is applied (the maxHeight is set inline) */
+        /* Button styling */
+        
+        .group-content button {
+            margin: 3px;
+            padding: 5px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .group-content button:hover {
+            background: #eaeaea;
+        }
+        /* Color palette styling */
+        
+        .color-palette {
+            margin: 5px 0;
+        }
+        
+        .color-swatch {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin: 2px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+    </style>
+    <script>
+        // Execute a formatting command.
+        function execCmd(command, value = null) {
+            document.execCommand(command, false, value);
+        }
+        // For commands not implemented.
+        function notImplemented() {
+            alert("Not implemented");
+        }
+        // Toggle the group open/close by setting its maxHeight.
+        function toggleGroup(contentId, headerId) {
+            var content = document.getElementById(contentId);
+            var header = document.getElementById(headerId);
+            if (content.style.maxHeight && content.style.maxHeight !== "0px") {
+                // Collapse it.
+                content.style.maxHeight = "0px";
+                header.classList.remove("active");
+            } else {
+                // Expand it to its full height.
+                content.style.maxHeight = content.scrollHeight + "px";
+                header.classList.add("active");
+            }
+        }
+        // Set text color from swatch.
+        function setTextColor(color) {
+            execCmd('foreColor', color);
+        }
+        // Set highlight (background) color from swatch.
+        function setHighlight(color) {
+            execCmd('hiliteColor', color);
+        }
+    </script>
+</head>
+
+<body>
+    <div id="formattingToolbar">
+        <!-- Group 1: Basic Text Formatting -->
+        <div class="group">
+            <div class="group-header" id="header1" onclick="toggleGroup('group1','header1')">
+                <span>Basic Text Formatting (1-15) – None</span>
+                <span class="arrow">&#9654;</span>
+            </div>
+            <div class="group-content" id="group1">
+                <button type="button" onclick="execCmd('bold')">Bold (B)</button>
+                <button type="button" onclick="execCmd('italic')">Italic (I)</button>
+                <button type="button" onclick="execCmd('underline')">Underline (U)</button>
+                <button type="button" onclick="execCmd('strikeThrough')">Strikethrough</button>
+                <button type="button" onclick="execCmd('subscript')">Subscript (X₂)</button>
+                <button type="button" onclick="execCmd('superscript')">Superscript (X²)</button>
+                <button type="button" onclick="execCmd('removeFormat')">None</button>
+                <div class="color-palette">
+                    <span>Font Color: </span>
+                    <span class="color-swatch" style="background:#000000" onclick="setTextColor('#000000')"></span>
+                    <span class="color-swatch" style="background:#FF0000" onclick="setTextColor('#FF0000')"></span>
+                    <span class="color-swatch" style="background:#00FF00" onclick="setTextColor('#00FF00')"></span>
+                    <span class="color-swatch" style="background:#0000FF" onclick="setTextColor('#0000FF')"></span>
+                    <span class="color-swatch" style="background:#FFFF00" onclick="setTextColor('#FFFF00')"></span>
+                    <span class="color-swatch" style="background:#FF00FF" onclick="setTextColor('#FF00FF')"></span>
+                    <span class="color-swatch" style="background:#00FFFF" onclick="setTextColor('#00FFFF')"></span>
+                </div>
+                <div class="color-palette">
+                    <span>Highlight: </span>
+                    <span class="color-swatch" style="background:#FFFF00" onclick="setHighlight('#FFFF00')"></span>
+                    <span class="color-swatch" style="background:#FFC0CB" onclick="setHighlight('#FFC0CB')"></span>
+                    <span class="color-swatch" style="background:#90EE90" onclick="setHighlight('#90EE90')"></span>
+                    <span class="color-swatch" style="background:#ADD8E6" onclick="setHighlight('#ADD8E6')"></span>
+                    <span class="color-swatch" style="background:#FFA500" onclick="setHighlight('#FFA500')"></span>
+                </div>
+                <button type="button" onclick="execCmd('fontSize','3')">Font Size (Aa)</button>
+                <button type="button" onclick="execCmd('fontName','Arial')">Font Style</button>
+            </div>
+        </div>
+
+        <!-- Group 2: Paragraph Formatting -->
+        <div class="group">
+            <div class="group-header" id="header2" onclick="toggleGroup('group2','header2')">
+                <span>Paragraph Formatting (16-30) – None</span>
+                <span class="arrow">&#9654;</span>
+            </div>
+            <div class="group-content" id="group2">
+                <button type="button" onclick="execCmd('justifyLeft')">Left Align (≡)</button>
+                <button type="button" onclick="execCmd('justifyCenter')">Center Align (≡)</button>
+                <button type="button" onclick="execCmd('justifyRight')">Right Align (≡)</button>
+                <button type="button" onclick="execCmd('justifyFull')">Justify (≡)</button>
+                <button type="button" onclick="execCmd('insertUnorderedList')">Bullet List (• List)</button>
+                <button type="button" onclick="execCmd('insertOrderedList')">Numbered List (1. List)</button>
+                <button type="button" onclick="execCmd('removeFormat')">None</button>
+            </div>
+        </div>
+
+        <!-- Group 3: Document Structure & Layout -->
+        <div class="group">
+            <div class="group-header" id="header3" onclick="toggleGroup('group3','header3')">
+                <span>Document Structure & Layout (31-45) – None</span>
+                <span class="arrow">&#9654;</span>
+            </div>
+            <div class="group-content" id="group3">
+                <button type="button" onclick="notImplemented()">Headers & Footers</button>
+                <button type="button" onclick="notImplemented()">Page Break (📄)</button>
+                <button type="button" onclick="notImplemented()">Section Break</button>
+                <button type="button" onclick="notImplemented()">Column Layout (📰)</button>
+                <button type="button" onclick="notImplemented()">Custom Margins</button>
+                <button type="button" onclick="notImplemented()">Custom Page Size</button>
+                <button type="button" onclick="notImplemented()">Watermark</button>
+                <button type="button" onclick="execCmd('removeFormat')">None</button>
+            </div>
+        </div>
+
+        <!-- Group 4: Tables & Lists -->
+        <div class="group">
+            <div class="group-header" id="header4" onclick="toggleGroup('group4','header4')">
+                <span>Tables & Lists (46-55) – None</span>
+                <span class="arrow">&#9654;</span>
+            </div>
+            <div class="group-content" id="group4">
+                <button type="button" onclick="notImplemented()">Insert Table (▦)</button>
+                <button type="button" onclick="notImplemented()">Table Styles</button>
+                <button type="button" onclick="notImplemented()">Merge Table Cells</button>
+                <button type="button" onclick="notImplemented()">Split Table Cells</button>
+                <button type="button" onclick="notImplemented()">Table Borders & Shading</button>
+                <button type="button" onclick="notImplemented()">Sorting Table Data</button>
+                <button type="button" onclick="notImplemented()">Table Alignment</button>
+                <button type="button" onclick="notImplemented()">Convert Text to Table</button>
+                <button type="button" onclick="notImplemented()">Convert Table to Text</button>
+                <button type="button" onclick="notImplemented()">Cell Padding & Spacing</button>
+                <button type="button" onclick="execCmd('removeFormat')">None</button>
+            </div>
+        </div>
+
+        <!-- Group 5: Media & Interactive Elements -->
+        <div class="group">
+            <div class="group-header" id="header5" onclick="toggleGroup('group5','header5')">
+                <span>Media & Interactive Elements (56-100) – None</span>
+                <span class="arrow">&#9654;</span>
+            </div>
+            <div class="group-content" id="group5">
+                <button type="button" onclick="execCmd('insertHorizontalRule')">Horizontal Line (—)</button>
+                <button type="button" onclick="notImplemented()">Insert Image (🖼)</button>
+                <button type="button" onclick="notImplemented()">Insert Video (📹)</button>
+                <button type="button" onclick="notImplemented()">Insert Audio (🎵)</button>
+                <button type="button" onclick="notImplemented()">Insert GIFs (🖼)</button>
+                <button type="button" onclick="createLink()">Hyperlink (🔗)</button>
+                <button type="button" onclick="notImplemented()">Remove Hyperlink</button>
+                <button type="button" onclick="execCmd('removeFormat')">None</button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

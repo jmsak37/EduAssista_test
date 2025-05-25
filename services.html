@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services | EduAssista</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Additional CSS for this page */
+        
+        .services-container {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .services-button {
+            background-color: #00796b;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .services-button:hover {
+            background-color: #004d40;
+        }
+        
+        .services-description {
+            font-size: 24px;
+            margin: 0 auto;
+            max-width: 80%;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .services-list {
+            text-align: left;
+            margin: 0 auto;
+            max-width: 800px;
+        }
+        
+        .services-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        
+        .services-list li {
+            background-color: #e0f7fa;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+            padding: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .services-list li a {
+            color: #00796b;
+            text-decoration: none;
+        }
+        
+        .services-list li a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Load navigation bar -->
+    <div id="navbar-placeholder"></div>
+
+    <div class="services-container">
+        <div class="services-description">
+            <h1>Our Comprehensive Writing Services</h1>
+            <p>
+                At EduAssista, we offer a wide range of professional writing services to meet your academic and professional needs. Our team of expert writers is dedicated to delivering high-quality, custom-written content tailored to your specific requirements. Whether
+                you need assistance with essays, research papers, theses, or any other type of writing project, we are here to help. Explore our diverse range of services and find the perfect solution for your writing needs.
+            </p>
+        </div>
+
+        <button class="services-button" onclick="openServicePopup()">View Our Services</button>
+    </div>
+
+    <!-- Load footer -->
+    <div id="footer-placeholder"></div>
+
+    <script>
+        // Function to open services in a new popup window
+        function openServicePopup() {
+            const popupWindow = window.open('', 'popup', 'width=800,height=600,scrollbars=yes');
+
+            // Set popup content without navigation and footer
+            popupWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Our Services | EduAssista</title>
+                    <link rel="stylesheet" href="styles.css">
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            margin: 0;
+                            padding: 20px;
+                            background-color: #f5f5f5;
+                            overflow-y: auto; /* Enable vertical scrolling */
+                        }
+                        .services-container {
+                            text-align: center;
+                            padding: 20px;
+                        }
+                        .services-description {
+                            font-size: 24px;
+                            margin: 0 auto;
+                            max-width: 80%;
+                            text-align: center;
+                            padding: 20px;
+                        }
+                        .services-list {
+                            margin: 20px auto;
+                            max-width: 800px;
+                            text-align: left;
+                        }
+                        .services-list ul {
+                            display: grid;
+                            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                            gap: 15px;
+                            padding: 0;
+                            list-style-type: none;
+                        }
+                        .services-list li {
+                            background-color: #ffffff;
+                            border: 1px solid #ddd;
+                            border-radius: 5px;
+                            padding: 15px;
+                            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+                            transition: all 0.3s;
+                            text-align: center;
+                        }
+                        .services-list li:hover {
+                            transform: translateY(-5px);
+                            box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+                        }
+                        .services-list li a {
+                            color: #00796b;
+                            text-decoration: none;
+                            font-weight: bold;
+                        }
+                        .services-list li a:hover {
+                            text-decoration: underline;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="services-container">
+                        <div class="services-description">
+                            <h1>Our Comprehensive Writing Services</h1>
+                        </div>
+                        <div class="services-list">
+                            <ul>
+                                <li><a href="essay-writing.html" onclick="openInOriginalWindow('essay-writing.html'); return false;">Essay Writing</a></li>
+                                <li><a href="research-paper-writing.html" onclick="openInOriginalWindow('research-paper-writing.html'); return false;">Research Paper Writing</a></li>
+                                <li><a href="thesis-writing.html" onclick="openInOriginalWindow('thesis-writing.html'); return false;">Thesis Writing</a></li>
+                                <li><a href="dissertation-writing.html" onclick="openInOriginalWindow('dissertation-writing.html'); return false;">Dissertation Writing</a></li>
+                                <li><a href="assignment-writing.html" onclick="openInOriginalWindow('assignment-writing.html'); return false;">Assignment Writing</a></li>
+                                <li><a href="book-report-writing.html" onclick="openInOriginalWindow('book-report-writing.html'); return false;">Book Report Writing</a></li>
+                                <li><a href="speech-writing.html" onclick="openInOriginalWindow('speech-writing.html'); return false;">Speech Writing</a></li>
+                                <li><a href="personal-statement.html" onclick="openInOriginalWindow('personal-statement.html'); return false;">Personal Statement Writing</a></li>
+                                <li><a href="literature-review-writing.html" onclick="openInOriginalWindow('literature-review-writing.html'); return false;">Literature Review Writing</a></li>
+                                <li><a href="coursework-writing.html" onclick="openInOriginalWindow('coursework-writing.html'); return false;">Coursework Writing</a></li>
+                                <li><a href="lab-report-writing.html" onclick="openInOriginalWindow('lab-report-writing.html'); return false;">Lab Report Writing</a></li>
+                                <li><a href="homework-writing.html" onclick="openInOriginalWindow('homework-writing.html'); return false;">Homework Writing</a></li>
+                                <li><a href="case-study-writing.html" onclick="openInOriginalWindow('case-study-writing.html'); return false;">Case Study Writing</a></li>
+                                <li><a href="capstone-project-writing.html" onclick="openInOriginalWindow('capstone-project-writing.html'); return false;">Capstone Project Writing</a></li>
+                                <li><a href="others.html" onclick="openInOriginalWindow('others.html'); return false;">Others</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <script>
+                        // Function to handle opening links in the original window
+                        function openInOriginalWindow(url) {
+                            window.opener.location.href = url; // Open in the same tab of the original window
+                            window.close(); // Close the popup
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `);
+        }
+
+        // Load navigation bar from navigation.html
+        fetch('navigation.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-placeholder').innerHTML = data;
+            })
+            .catch(error => console.error('Error loading navigation:', error));
+
+        // Load footer from footer.html
+        fetch('footer.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('footer-placeholder').innerHTML = data;
+            })
+            .catch(error => console.error('Error loading footer:', error));
+    </script>
+</body>
+
+</html>

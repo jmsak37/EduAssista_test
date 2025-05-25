@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Earnings</title>
+  <link rel="stylesheet" href="style4.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      background-color: #4CAF50;
+      color: #fff;
+    }
+    .order-name a {
+      color: #007bff;
+      text-decoration: none;
+    }
+    .order-name a:hover {
+      text-decoration: underline;
+    }
+    .balance {
+      font-weight: bold;
+      color: #27ae60;
+    }
+    .buttons {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .buttons button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: #fff;
+    }
+  </style>
+  <script>
+    // Fetch earnings from earning.php and build the table.
+    document.addEventListener("DOMContentLoaded", function(){
+      fetch('earning.php')
+        .then(response => response.json())
+        .then(data => {
+          displayEarnings(data);
+        })
+        .catch(error => {
+          console.error("Error fetching earnings:", error);
+          document.getElementById("earningsContainer").innerHTML = "<p>Error loading earnings.</p>";
+        });
+    });
+    
+    function displayEarnings(orders) {
+      let html = "<table><thead><tr>" +
+        "<th>Order ID</th>" +
+        "<th>Client ID</th>" +
+        "<th>Subject</th>" +
+        "<th>Name</th>" +
+        "<th>Deadline</th>" +
+        "<th>Balance</th>" +
+        "</tr></thead><tbody>";
+      
+      orders.forEach(order => {
+        // Calculate balance = number_of_pages * 2, then prepend a plus sign.
+        let balance = order.number_of_pages * 2;
+        let balanceText = "+" + balance;
+        // Create a clickable link for the order name.
+        let nameLink = "<span class='order-name'><a href='viewtheorder.html?order_id=" + order.order_id + "'>" + order.name + "</a></span>";
+        html += "<tr>" +
+                "<td>" + order.order_id + "</td>" +
+                "<td>" + order.client_id + "</td>" +
+                "<td>" + order.subject + "</td>" +
+                "<td>" + nameLink + "</td>" +
+                "<td>" + order.deadline + "</td>" +
+                "<td class='balance'>" + balanceText + "</td>" +
+                "</tr>";
+      });
+      html += "</tbody></table>";
+      document.getElementById("earningsContainer").innerHTML = html;
+    }
+  </script>
+</head>
+<body>
+  <h2>Earnings</h2>
+  <div class="container" id="earningsContainer">
+    <!-- Earnings table will be rendered here -->
+  </div>
+  <div class="buttons">
+    <button onclick="window.location.href='tutor_index.html'">Back</button>
+  </div>
+</body>
+</html>

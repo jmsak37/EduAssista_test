@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - EduAssista</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="navigation.html"></script>
+    <script src="footer.html"></script>
+    <style>
+        /* Add your CSS styles here */
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1,
+        h2 {
+            text-align: center;
+        }
+        
+        .services {
+            margin-top: 20px;
+        }
+        
+        .service-item {
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .service-item h2 {
+            margin-top: 0;
+        }
+        
+        .service-item p {
+            margin: 0;
+        }
+        
+        .service-item ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .service-item ul li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="navbar-placeholder"></div>
+    <div class="container">
+        <h1>About EduAssista</h1>
+        <p>Welcome to EduAssista, your all-in-one platform designed to support students, clients, and tutors in their educational journey. Our platform offers a wide range of services to meet your academic needs and enhance your learning experience.</p>
+
+        <div class="services">
+            <div class="service-item">
+                <h2>Client Services</h2>
+                <p>As a client, you have access to a suite of features tailored to help you get the most out of our platform:</p>
+                <ul>
+                    <li><strong>Dashboard:</strong> View and manage your requests, track your progress, and access essential resources.</li>
+                    <li><strong>Profile:</strong> Manage your personal information and preferences.</li>
+                    <li><strong>Request Assistance:</strong> Submit requests for tutoring or academic help and track their status.</li>
+                    <li><strong>My Requests:</strong> Review and manage your past and current requests.</li>
+                    <li><strong>Messages:</strong> Communicate with tutors and support staff.</li>
+                    <li><strong>Billing and Payments:</strong> View billing details and manage payments.</li>
+                    <li><strong>Resources:</strong> Access educational resources and tools.</li>
+                    <li><strong>Notifications:</strong> Stay informed with important updates and alerts.</li>
+                    <li><strong>Feedback and Reviews:</strong> Provide feedback on your experience and review the services received.</li>
+                    <li><strong>Settings:</strong> Customize your user settings and preferences.</li>
+                </ul>
+            </div>
+
+            <div class="service-item">
+                <h2>Tutor Services</h2>
+                <p>Tutors can benefit from a range of features designed to streamline their work and improve their interaction with clients:</p>
+                <ul>
+                    <li><strong>Dashboard:</strong> Access and manage your sessions and requests.</li>
+                    <li><strong>Profile:</strong> Update your personal and professional details.</li>
+                    <li><strong>My Sessions:</strong> View and manage your tutoring sessions.</li>
+                    <li><strong>Request Management:</strong> Handle requests from clients efficiently.</li>
+                    <li><strong>Messages:</strong> Communicate with clients and support staff.</li>
+                    <li><strong>Billing and Payments:</strong> Track your earnings and manage payments.</li>
+                    <li><strong>Resources:</strong> Access tools and materials to aid in tutoring.</li>
+                    <li><strong>Notifications:</strong> Receive updates and alerts relevant to your sessions.</li>
+                    <li><strong>Feedback and Reviews:</strong> Receive feedback from clients and review their ratings.</li>
+                    <li><strong>Settings:</strong> Customize your profile and account settings.</li>
+                </ul>
+            </div>
+
+            <div class="service-item">
+                <h2>Support Services</h2>
+                <p>Our support team is dedicated to ensuring a smooth experience for all users. We offer the following services:</p>
+                <ul>
+                    <li><strong>Dashboard:</strong> Monitor and manage support tickets and requests.</li>
+                    <li><strong>Profile:</strong> Manage your support staff details and settings.</li>
+                    <li><strong>Ticket Management:</strong> Handle and resolve support tickets.</li>
+                    <li><strong>Request Queue:</strong> View and prioritize incoming support requests.</li>
+                    <li><strong>Messages:</strong> Communicate with clients and other support staff.</li>
+                    <li><strong>Knowledge Base:</strong> Access a repository of helpful articles and guides.</li>
+                    <li><strong>Reports and Analytics:</strong> Generate and view reports to monitor performance and trends.</li>
+                    <li><strong>Notifications:</strong> Receive important updates and alerts.</li>
+                    <li><strong>Feedback and Reviews:</strong> Gather feedback and improve support services.</li>
+                    <li><strong>Settings:</strong> Customize support team settings and preferences.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div id="footer-placeholder"></div>
+
+    <script>
+        // Load navigation bar from navigation.html
+        fetch('navigation.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('navbar-placeholder').innerHTML = data;
+            })
+            .catch(error => console.error('Error loading navigation:', error));
+    </script>
+</body>
+
+</html>

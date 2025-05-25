@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>View Order Details</title>
+    <link rel="stylesheet" href="style4.css">
+    <style>
+        /* General container & table styles (adapted from workingwindow.html) */
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 5px;
+        }
+        
+        .comment-text {
+            font-style: italic;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        
+        .document-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fafafa;
+            margin-bottom: 10px;
+        }
+        
+        .preview {
+            margin-top: 10px;
+        }
+        
+        #download-links {
+            border: 1px solid #ccc;
+            background: #f0f0f0;
+            padding: 10px;
+            margin-top: 20px;
+            text-align: left;
+            font-size: 14px;
+        }
+        
+        #download-links a {
+            display: block;
+            color: #007bff;
+            text-decoration: none;
+            margin-bottom: 5px;
+        }
+        /* Scrollable containers */
+        
+        .scroll-container {
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background: #f9f9f9;
+            margin-bottom: 20px;
+        }
+        
+        .buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .buttons button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .btn-back {
+            background-color: #dc3545;
+            color: #fff;
+        }
+    </style>
+    <script>
+        // Helper: convert newlines to <br>
+        function nl2br(str) {
+            if (!str) return "";
+            return str.replace(/(?:\r\n|\r|\n)/g, '<br>');
+        }
+
+        /* 
+          Define the list of previewable extensions.
+          Files with extensions not in this list will display a message with a download link.
+        */
+        const previewableExtensions = [
+            "pdf", "png", "jpg", "jpeg", "gif", "svg",
+            "txt", "html", "htm", "xml", "odt", "csv", "css", "js", "sql",
+            "doc", "docx", "rtf", "xls", "xlsx", "ods", "ppt", "pptx", "odp"
+        ];
+
+        // getPreviewHTML returns an inline preview if the file extension is previewable.
+        function getPreviewHTML(fileURL, ext) {
+            ext = ext.toLowerCase();
+            if (ext === "pdf") {
+                return '<iframe src="' + fileURL + '" style="width:100%; height:400px;" frameborder="0"></iframe>';
+            } else if (["png", "jpg", "jpeg", "gif", "svg"].includes(ext)) {
+                return '<img src="' + fileURL + '" alt="Preview" style="max-width:100%; height:auto;">';
+            } else if (["txt", "html", "htm", "xml", "odt", "csv", "css", "js", "sql"].includes(ext)) {
+                return '<iframe src="' + fileURL + '" style="width:100%; height:400px;" frameborder="0"></iframe>';
+            } else {
+                return '<p>Preview not available. <a href="' + fileURL + '" target="_blank">Download file</a></p>';
+            }
+        }
+
+        // buildDocumentPreview creates a preview block for a file.
+        function buildDocumentPreview(fileURL, fileName) {
+            const parts = fileName.split('.');
+            const ext = parts.pop().toLowerCase();
+            let previewHTML = "";
+            if (previewableExtensions.includes(ext)) {
+                previewHTML = getPreviewHTML(fileURL, ext);
+            } else {
+                previewHTML = '<p>Preview not available. <a href="' + fileURL + '" target="_blank">Download ' + fileName + '</a></p>';
+            }
+            return '<div class="document-box">' +
+                '<strong>' + fileName + '</strong><br>' +
+                '<a href="' + fileURL + '" target="_blank">Download ' + fileName + '</a>' +
+                '<div class="preview">' + previewHTML + '</div>' +
+                '</div>';
+        }
+
+        // buildDocumentRow creates a table row for download links.
+        function buildDocumentRow(fileURL, fileName, index) {
+            const parts = fileName.split('.');
+            const ext = parts.pop().toLowerCase();
+            let previewText = previewableExtensions.includes(ext) ? "Preview available" : "No preview available";
+            return '<tr>' +
+                '<td>' + (index + 1) + '</td>' +
+                '<td>' + fileName + '</td>' +
+                '<td><a href="' + fileURL + '" target="_blank">Download</a></td>' +
+                '<td>' + previewText + '</td>' +
+                '</tr>';
+        }
+
+        /* 
+           getFileURL: Checks if the file path already begins with "doneorders/".
+           If not, prepends "doneorders/".
+        */
+        function getFileURL(rawPath) {
+            rawPath = rawPath.trim();
+            if (rawPath.indexOf("doneorders/") === 0) {
+                return rawPath;
+            } else {
+                return "doneorders/" + rawPath;
+            }
+        }
+
+        // Utility: get URL parameter by name.
+        function getParameterByName(name) {
+            const url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const orderId = getParameterByName('order_id');
+            if (!orderId) {
+                document.getElementById("orderDetails").innerHTML = "<p>Order ID is missing.</p>";
+                return;
+            }
+            fetch('getOrderDetailsa.php?order_id=' + orderId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById("orderDetails").innerHTML = "<p>Error: " + data.error + "</p>";
+                        return;
+                    }
+                    // Build the order details table.
+                    let detailsHTML = "<table><tbody>" +
+                        "<tr><th>Order ID</th><td>" + (data.order_id || "") + "</td></tr>" +
+                        "<tr><th>Order Name</th><td>" + (data.name || "") + "</td></tr>" +
+                        "<tr><th>Client ID</th><td>" + (data.client_id || "") + "</td></tr>" +
+                        "<tr><th>Subject</th><td>" + (data.subject || "") + "</td></tr>" +
+                        "<tr><th>Description</th><td>" + nl2br(data.description) + "</td></tr>" +
+                        "<tr><th>Instructions</th><td>" + nl2br(data.instructions) + "</td></tr>" +
+                        "<tr><th>Deadline</th><td>" + (data.deadline || "") + "</td></tr>" +
+                        "</tbody></table>";
+                    document.getElementById("orderDetails").innerHTML = detailsHTML;
+
+                    // ANSWER FILES Section.
+                    if (data.answer_files && data.answer_files.trim() !== "") {
+                        let answerFiles = [];
+                        try {
+                            answerFiles = JSON.parse(data.answer_files);
+                        } catch (e) {}
+                        let answerComments = data.answer_comments ? data.answer_comments.trim() : "";
+                        let answerPreviewHTML = "";
+                        let answerTableHTML = '<table><thead>' +
+                            '<tr><th>#</th><th>Document Name</th><th>Download Link</th><th>Preview</th></tr>' +
+                            '</thead><tbody>';
+                        if (answerFiles.length > 0) {
+                            answerFiles.forEach((rawPath, i) => {
+                                let fileURL = getFileURL(rawPath);
+                                let fileName = fileURL.split("/").pop();
+                                answerPreviewHTML += buildDocumentPreview(fileURL, fileName);
+                                answerTableHTML += buildDocumentRow(fileURL, fileName, i);
+                            });
+                        }
+                        answerTableHTML += '</tbody></table>';
+                        let answerSectionHTML = '<div class="section">' +
+                            '<h3 class="section-title">Answer Files</h3>';
+                        if (answerComments !== "") {
+                            answerSectionHTML += "<p class='comment-text'><strong>Comments:</strong> " + nl2br(answerComments) + "</p>";
+                        }
+                        answerSectionHTML += '<div class="document-container scroll-container">' + answerPreviewHTML + '</div>' +
+                            '<div class="scroll-container" style="margin-top:10px;">' + answerTableHTML + '</div></div>';
+                        document.getElementById("orderDetails").innerHTML += answerSectionHTML;
+                    } else {
+                        document.getElementById("orderDetails").innerHTML += "<p>No answer files uploaded.</p>";
+                    }
+
+                    // EXPLANATION FILES Section.
+                    if (data.explanation_files && data.explanation_files.trim() !== "") {
+                        let explanationFiles = [];
+                        try {
+                            explanationFiles = JSON.parse(data.explanation_files);
+                        } catch (e) {}
+                        let explanationComments = data.explanation_comments ? data.explanation_comments.trim() : "";
+                        let explanationPreviewHTML = "";
+                        let explanationTableHTML = '<table><thead>' +
+                            '<tr><th>#</th><th>Document Name</th><th>Download Link</th><th>Preview</th></tr>' +
+                            '</thead><tbody>';
+                        if (explanationFiles.length > 0) {
+                            explanationFiles.forEach((rawPath, i) => {
+                                let fileURL = getFileURL(rawPath);
+                                let fileName = fileURL.split("/").pop();
+                                explanationPreviewHTML += buildDocumentPreview(fileURL, fileName);
+                                explanationTableHTML += buildDocumentRow(fileURL, fileName, i);
+                            });
+                        }
+                        explanationTableHTML += '</tbody></table>';
+                        let explanationSectionHTML = '<div class="section">' +
+                            '<h3 class="section-title">Explanation Files</h3>';
+                        if (explanationComments !== "") {
+                            explanationSectionHTML += "<p class='comment-text'><strong>Comments:</strong> " + nl2br(explanationComments) + "</p>";
+                        }
+                        explanationSectionHTML += '<div class="document-container scroll-container">' + explanationPreviewHTML + '</div>' +
+                            '<div class="scroll-container" style="margin-top:10px;">' + explanationTableHTML + '</div></div>';
+                        document.getElementById("orderDetails").innerHTML += explanationSectionHTML;
+                    } else {
+                        document.getElementById("orderDetails").innerHTML += "<p>No explanation files uploaded.</p>";
+                    }
+
+                })
+                .catch(error => {
+                    console.error("Error fetching order details:", error);
+                    document.getElementById("orderDetails").innerHTML = "<p>Error loading order details.</p>";
+                });
+
+            document.getElementById("backBtn").addEventListener("click", function() {
+                window.history.back();
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <h2>View Order Details</h2>
+    <div class="container" id="orderDetails">
+        <!-- Order details, answer files and explanation files will be loaded here -->
+    </div>
+    <div class="buttons">
+        <button id="backBtn" class="btn btn-back">Back</button>
+    </div>
+</body>
+
+</html>

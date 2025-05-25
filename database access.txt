@@ -1,0 +1,5 @@
+Users having access to "eduassistadb"
+User name	Host name	Type	Privileges	Grant	Action
+	root	127.0.0.1	global	ALL PRIVILEGES	Yes	Edit privileges Edit privileges	Export Export
+	root	::1	global	ALL PRIVILEGES	Yes	Edit privileges Edit privileges	Export Export
+	root	localhost	global	ALL PRIVILEGES	Yes	Edit privileges Edit privileges	Export Export

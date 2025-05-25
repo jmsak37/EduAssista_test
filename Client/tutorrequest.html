@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tutor Request / Place Order</title>
+    <style>
+        /* CSS styles for a neat appearance */
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f1f3f5;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px 30px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            margin-top: 12px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        input[type="datetime-local"],
+        textarea,
+        input[type="file"] {
+            padding: 10px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        button {
+            margin-top: 20px;
+            padding: 12px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #218838;
+        }
+        
+        #add-document-btn {
+            background-color: #007BFF;
+            font-size: 14px;
+            padding: 8px;
+            width: auto;
+        }
+        
+        #total_price {
+            font-weight: bold;
+            color: #000;
+        }
+        /* Tutor ID search section */
+        
+        #tutor-id-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        #tutor-id-section input {
+            padding: 10px;
+            font-size: 16px;
+            width: 60%;
+            margin-right: 10px;
+        }
+        
+        #tutor-id-section button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        #tutor-id-section button:hover {
+            background-color: #0056b3;
+        }
+        
+        #tutor-id-error {
+            color: red;
+            margin-top: 10px;
+        }
+        /* Thank you modal */
+        
+        #thank-you-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        #thank-you-modal .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 400px;
+            width: 80%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+        /* Upload progress popup */
+        
+        #upload-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1100;
+        }
+        
+        #upload-popup .popup-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            width: 300px;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            background: #eee;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-bar .progress {
+            width: 0%;
+            height: 20px;
+            background: #4caf50;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2 id="page-title">Tutor Request</h2>
+        <!-- Tutor ID Search Section (hidden if tutor_id exists in URL) -->
+        <div id="tutor-id-section">
+            <input type="text" id="tutor_id_input" placeholder="Enter Tutor ID" required>
+            <button id="validateTutorBtn">Submit Tutor ID</button>
+            <div id="tutor-id-error"></div>
+        </div>
+        <!-- Order Form (hidden until tutor is validated) -->
+        <div id="order-form-section" style="display:none;">
+            <form id="order-form" enctype="multipart/form-data" method="POST" action="tutorrequest.php?action=submit">
+                <!-- Hidden tutor_id field -->
+                <input type="hidden" name="tutor_id" id="tutor_id">
+                <!-- Hidden writer_type always set to Professional Writer -->
+                <input type="hidden" name="writer_type" value="Professional Writer">
+                <!-- Hidden input for price per page; will be set via AJAX -->
+                <input type="hidden" id="price_per_page" name="price_per_page" value="">
+
+                <label for="subject">Subject:</label>
+                <input type="text" id="subject" name="subject" required>
+
+                <label for="order_name">Order Name:</label>
+                <input type="text" id="order_name" name="order_name" required>
+
+                <label for="order_description">Order Description:</label>
+                <textarea id="order_description" name="order_description" rows="5" required></textarea>
+
+                <label for="upload_instructions">Upload Instructions:</label>
+                <textarea id="upload_instructions" name="upload_instructions" rows="3"></textarea>
+
+                <label for="order_deadline">Order Deadline:</label>
+                <input type="datetime-local" id="order_deadline" name="order_deadline" required>
+
+                <label for="number_of_pages">Number of Pages:</label>
+                <input type="number" id="number_of_pages" name="number_of_pages" min="1" required>
+
+                <label for="order_document">Attach Document (optional):</label>
+                <input type="file" id="order_document" name="order_document[]" multiple>
+                <!-- Container for additional file inputs if needed -->
+                <div id="additional-documents-container"></div>
+                <button type="button" id="add-document-btn">Add Another Document</button>
+
+                <p>Total Price: $<span id="total_price">0.00</span></p>
+
+                <button type="submit">Place Order</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upload Popup -->
+    <div id="upload-popup">
+        <div class="popup-content">
+            <div class="progress-bar">
+                <div class="progress" id="progress"></div>
+            </div>
+            <p>Uploading documents, please wait...</p>
+        </div>
+    </div>
+
+    <!-- Thank You Modal -->
+    <div id="thank-you-modal">
+        <div class="modal-content">
+            <p id="thank-you-message"></p>
+        </div>
+    </div>
+
+    <script>
+        // On page load, fetch the pricing info from tutorrequest.php?action=getPricing
+        fetch('tutorrequest.php?action=getPricing')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('price_per_page').value = data.price_per_page;
+                } else {
+                    document.getElementById('price_per_page').value = 0;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching pricing:', error);
+                document.getElementById('price_per_page').value = 0;
+            });
+
+        // Helper: Get URL parameter by name
+        function getParameterByName(name) {
+            const url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        // Check if tutor_id is provided in URL
+        const urlTutorID = getParameterByName('tutor_id');
+        if (urlTutorID) {
+            document.getElementById('tutor_id_input').value = urlTutorID;
+            validateTutorID(urlTutorID);
+        }
+
+        // Tutor ID validation via AJAX
+        document.getElementById('validateTutorBtn').addEventListener('click', function() {
+            const tutorId = document.getElementById('tutor_id_input').value.trim();
+            if (!tutorId) {
+                document.getElementById('tutor-id-error').textContent = "Please enter a Tutor ID.";
+                return;
+            }
+            validateTutorID(tutorId);
+        });
+
+        function validateTutorID(tutorId) {
+            fetch("tutorrequest.php?action=validate", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: "tutor_id=" + encodeURIComponent(tutorId)
+                })
+                .then(response => response.text())
+                .then(text => {
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                    } catch (e) {
+                        throw new Error("Invalid JSON response: " + text);
+                    }
+                    if (data.success) {
+                        document.getElementById('tutor-id-section').style.display = "none";
+                        document.getElementById('order-form-section').style.display = "block";
+                        document.getElementById('tutor_id').value = tutorId;
+                        if (urlTutorID) {
+                            document.getElementById('page-title').textContent = "Place Your Order";
+                        }
+                    } else {
+                        document.getElementById('tutor-id-error').textContent = data.error;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error validating tutor ID:", error);
+                    document.getElementById('tutor-id-error').textContent = "Error: " + error.message;
+                });
+        }
+
+        // Calculate total price using the fixed price per page for Professional Writer.
+        const numberOfPagesEl = document.getElementById('number_of_pages');
+        numberOfPagesEl.addEventListener('input', calculateTotalPrice);
+
+        function calculateTotalPrice() {
+            const pricePerPage = parseFloat(document.getElementById('price_per_page').value) || 0;
+            const numPages = parseInt(numberOfPagesEl.value) || 0;
+            const total = pricePerPage * numPages;
+            document.getElementById('total_price').textContent = total.toFixed(2);
+        }
+
+        // Add additional file input (in case user wants to add more)
+        document.getElementById('add-document-btn').addEventListener('click', function() {
+            const container = document.getElementById('additional-documents-container');
+            const input = document.createElement('input');
+            input.type = "file";
+            input.name = "order_document[]";
+            container.appendChild(input);
+        });
+
+        // Handle form submission with AJAX (with upload progress)
+        document.getElementById('order-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Validate deadline: must be at least 1 hour from now
+            const deadline = new Date(document.getElementById('order_deadline').value);
+            const now = new Date();
+            if ((deadline - now) < 3600000) {
+                alert("The order deadline must be at least 1 hour from now.");
+                return;
+            }
+
+            // Validate total price is greater than zero
+            const totalPrice = parseFloat(document.getElementById('total_price').textContent);
+            if (isNaN(totalPrice) || totalPrice <= 0) {
+                alert("Please select a valid number of pages.");
+                return;
+            }
+
+            const formData = new FormData(this);
+            formData.append('total_price', totalPrice);
+
+            // Show upload popup
+            document.getElementById('upload-popup').style.display = 'block';
+            const progressBar = document.getElementById('progress');
+            progressBar.style.width = '0%';
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', this.action, true);
+
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = percent + '%';
+                }
+            };
+
+            xhr.onload = function() {
+                document.getElementById('upload-popup').style.display = 'none';
+                if (xhr.status === 200) {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response.success) {
+                        document.getElementById('thank-you-message').textContent = "Thank you for hiring the tutor! Your order (ID: " + response.order_number + ") has been placed and you will get the best work.";
+                        document.getElementById('thank-you-modal').style.display = 'flex';
+                        setTimeout(function() {
+                            window.location.href = "index.html";
+                        }, 3000);
+                    } else {
+                        alert("Error: " + response.error);
+                    }
+                } else {
+                    alert("Error placing order.");
+                }
+            };
+
+            xhr.onerror = function() {
+                document.getElementById('upload-popup').style.display = 'none';
+                alert("An error occurred during the upload.");
+            };
+
+            xhr.send(formData);
+        });
+    </script>
+</body>
+
+</html>

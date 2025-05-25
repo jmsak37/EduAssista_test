@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders in Progress</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px; /* Increase max width if needed */
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow-x: auto; /* Enables horizontal scrolling */
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .username {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* Make table container scrollable */
+        .table-container {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            white-space: nowrap; /* Prevent text from wrapping */
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        /* Progress circle styling */
+        .progress-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+            font-size: 12px;
+            border: 2px solid #fff;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        /* Error and loading messages */
+        #loading-message, #error-message {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+        }
+
+        #error-message {
+            color: red;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h2>Orders in Progress</h2>
+            <span class="username" id="username">Loading...</span>
+        </header>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Order Name</th>
+                        <th>Tutor ID</th>
+                        <th>Deadline</th>
+                        <th>Progress</th>
+                    </tr>
+                </thead>
+                <tbody id="orders-in-progress-table">
+                    <tr>
+                        <td colspan="5" id="loading-message">Loading orders...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="error-message"></div>
+    </div>
+
+    <script>
+        function loadUserData() {
+            fetch('orders_in_progress.php?action=getUserData')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('username').textContent = data.error;
+                        console.error(data.error);
+                    } else {
+                        document.getElementById('username').textContent = `Welcome, ${data.username}`;
+                        loadOrdersInProgress(data.client_id);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching user data:', error);
+                    document.getElementById('username').textContent = 'Error fetching user data';
+                    displayError('Error fetching user data');
+                });
+        }
+
+        function loadOrdersInProgress(clientId) {
+            fetch(`orders_in_progress.php?action=getOrders&client_id=${clientId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const ordersTable = document.getElementById('orders-in-progress-table');
+                    ordersTable.innerHTML = ''; // Clear existing content
+                    const errorMessageDiv = document.getElementById('error-message');
+                    errorMessageDiv.style.display = 'none';
+
+                    if (data.error) {
+                        ordersTable.innerHTML = `<tr><td colspan="5" style="color: red;">${data.error}</td></tr>`;
+                        displayError(data.error);
+                    } else if (data.orders && data.orders.length > 0) {
+                        data.orders.forEach(order => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${order.id}</td>
+                                <td>${order.name}</td>
+                                <td>${order.tutor_id ? order.tutor_id : 'N/A'}</td>
+                                <td>${order.deadline}</td>
+                            `;
+
+                            const progressCell = document.createElement('td');
+                            const progressCircle = createProgressCircle(order.status, order.source, order.id);
+                            progressCell.appendChild(progressCircle);
+
+                            if (order.source === 'progress' || order.source === 'completed') {
+                                const link = document.createElement('a');
+                                link.href = order.source === 'progress' ? 
+                                    `orders_in_progress.php?action=setUserAndRedirect&order_id=${order.id}` :
+                                    `seetheorder.html?order_id=${order.id}`;
+                                link.textContent = "Download Order";
+                                link.style.display = "block";
+                                link.style.marginTop = "5px";
+                                progressCell.appendChild(link);
+                            }
+
+                            row.appendChild(progressCell);
+                            ordersTable.appendChild(row);
+                        });
+                    } else {
+                        ordersTable.innerHTML = '<tr><td colspan="5">No orders in progress.</td></tr>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching orders:', error);
+                    displayError('Error fetching orders');
+                });
+        }
+
+        function displayError(message) {
+            const errorMessageDiv = document.getElementById('error-message');
+            errorMessageDiv.textContent = message;
+            errorMessageDiv.style.display = 'block';
+        }
+
+        function createProgressCircle(status, source, orderId) {
+            let progressPercentage, text, color;
+            if (source === "orders") {
+                const statusColors = {
+                    undone: { percent: "0%", text: "Undone", color: "#ff6666" },
+                    waiting: { percent: "15%", text: "Waiting", color: "#ff9900" },
+                    beingdone: { percent: "25%", text: "In Progress", color: "#66cc66" },
+                    skipped: { percent: "10%", text: "Skipped", color: "#999999" }
+                };
+                ({ percent: progressPercentage, text, color } = statusColors[status] || { percent: "0%", text: status, color: "#ff6666" });
+            } else {
+                const sourceColors = {
+                    progress: { percent: "50%", text: "In Progress", color: "#3399ff" },
+                    completed: { percent: "100%", text: "Completed", color: "#4CAF50" }
+                };
+                ({ percent: progressPercentage, text, color } = sourceColors[source] || { percent: "0%", text: "", color: "#ddd" });
+            }
+
+            const circle = document.createElement('div');
+            circle.classList.add('progress-circle');
+            circle.style.background = `conic-gradient(${color} ${progressPercentage}, #ddd 0%)`;
+            circle.textContent = text;
+            return circle;
+        }
+
+        loadUserData();
+    </script>
+</body>
+</html>

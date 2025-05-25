@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Audit Logs - EduAssista</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1dbab4;
+        }
+        
+        #searchContainer {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        #searchInput {
+            padding: 6px;
+            width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        #searchBtn,
+        #clearSearchBtn {
+            padding: 6px 10px;
+            margin-left: 5px;
+            border: none;
+            border-radius: 4px;
+            background-color: #00796b;
+            color: #fff;
+            cursor: pointer;
+        }
+        
+        #searchBtn:hover,
+        #clearSearchBtn:hover {
+            background-color: #004d40;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            margin-top: 20px;
+        }
+        
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+        }
+        
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #00796b;
+            color: #fff;
+        }
+        
+        .button {
+            background-color: #00796b;
+            color: #fff;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        
+        .button:hover {
+            background-color: #004d40;
+        }
+        /* Modal styling for user details */
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 400px;
+            border-radius: 5px;
+            position: relative;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute;
+            right: 10px;
+            top: 5px;
+        }
+        /* Bulk delete mode styling */
+        
+        .checkbox {
+            display: none;
+        }
+        
+        #deleteSelectedBtn {
+            display: none;
+            margin: 10px 0;
+            background-color: #d9534f;
+        }
+        /* Additional styling for action buttons in each row */
+        
+        .action-btn {
+            margin: 2px;
+        }
+        /* Confirmation modal styling */
+        
+        #confirmModal {
+            display: none;
+            position: fixed;
+            z-index: 1100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        #confirmModal .modal-content {
+            background-color: #f9f9f9;
+            margin: 20% auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            width: 350px;
+            border-radius: 5px;
+            text-align: center;
+            position: relative;
+        }
+        
+        #confirmModal .modal-content h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        #confirmModal .modal-content .confirm-btn,
+        #confirmModal .modal-content .cancel-btn {
+            background-color: #00796b;
+            color: #fff;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        
+        #confirmModal .modal-content .cancel-btn {
+            background-color: #d9534f;
+        }
+        
+        #confirmModal .modal-content .confirm-btn:hover {
+            background-color: #004d40;
+        }
+        
+        #confirmModal .modal-content .cancel-btn:hover {
+            background-color: #c9302c;
+        }
+        /* Notification modal styling */
+        
+        #notificationModal {
+            display: none;
+            position: fixed;
+            z-index: 1100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        #notificationModal .modal-content {
+            background-color: #dff0d8;
+            border: 1px solid #d0e9c6;
+            color: #3c763d;
+            margin: 20% auto;
+            padding: 20px;
+            width: 300px;
+            border-radius: 5px;
+            text-align: center;
+            position: relative;
+        }
+        
+        #notificationModal .modal-content .close {
+            color: #3c763d;
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Audit Logs</h1>
+    <div id="searchContainer">
+        <input type="text" id="searchInput" placeholder="Search by UserID, UserName, or Email">
+        <button id="searchBtn" class="button">Search</button>
+        <button id="clearSearchBtn" class="button">Clear</button>
+    </div>
+    <button id="toggleDeleteMode" class="button">Toggle Delete Mode</button>
+    <button id="deleteSelectedBtn" class="button">Delete Selected</button>
+    <table id="auditTable">
+        <thead>
+            <tr>
+                <th>LogID</th>
+                <th>UserID</th>
+                <th>UserName</th>
+                <th>Email</th>
+                <th>Action</th>
+                <th>Action Details</th>
+                <th>Timestamp</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rows will be loaded dynamically -->
+        </tbody>
+    </table>
+
+    <!-- Modal for displaying user details -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <span id="closeUserModal" class="close">&times;</span>
+            <h2>User Details</h2>
+            <div id="userDetails">
+                <!-- User details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <h3 id="confirmMessage">Are you sure?</h3>
+            <button id="confirmYes" class="confirm-btn">Yes</button>
+            <button id="confirmNo" class="cancel-btn">No</button>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content">
+            <span id="notificationClose" class="close">&times;</span>
+            <p id="notificationMessage"></p>
+        </div>
+    </div>
+
+    <script>
+        // Global close handler for all .close elements.
+        document.querySelectorAll(".close").forEach(closeBtn => {
+            closeBtn.addEventListener("click", function() {
+                this.parentElement.parentElement.style.display = "none";
+            });
+        });
+
+        // Helper: Show confirmation modal.
+        function showConfirmation(message, callback) {
+            const confirmModal = document.getElementById("confirmModal");
+            document.getElementById("confirmMessage").textContent = message;
+            confirmModal.style.display = "block";
+
+            document.getElementById("confirmYes").onclick = function() {
+                confirmModal.style.display = "none";
+                callback(true);
+            };
+            document.getElementById("confirmNo").onclick = function() {
+                confirmModal.style.display = "none";
+                callback(false);
+            };
+        }
+
+        // Helper: Show notification modal.
+        function showNotification(message) {
+            const notificationModal = document.getElementById("notificationModal");
+            document.getElementById("notificationMessage").textContent = message;
+            notificationModal.style.display = "block";
+            // Auto-close after 3 seconds.
+            setTimeout(() => {
+                notificationModal.style.display = "none";
+            }, 3000);
+        }
+
+        // Load audit logs on page load.
+        function loadAuditLogs() {
+            fetch("auditlogs.php?action=list")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const tbody = document.querySelector("#auditTable tbody");
+                        tbody.innerHTML = "";
+                        data.auditlogs.forEach(log => {
+                            let tr = document.createElement("tr");
+                            tr.innerHTML = `<td>${log.LogID}</td>
+                              <td>${log.UserID}</td>
+                              <td>${log.UserName ? log.UserName : ""}</td>
+                              <td>${log.Email ? log.Email : ""}</td>
+                              <td>${log.Action}</td>
+                              <td>${log.ActionDetails}</td>
+                              <td>${log.Timestamp}</td>
+                              <td>
+                                <button class="button action-btn viewBtn" data-userid="${log.UserID}">View</button>
+                                <button class="button action-btn logoutBtn" data-userid="${log.UserID}">Force Logout</button>
+                                <button class="button action-btn restrictBtn" data-userid="${log.UserID}">Restrict</button>
+                                <button class="button action-btn unrestrictBtn" data-userid="${log.UserID}">Unrestrict</button>
+                              </td>`;
+                            // Add checkbox for bulk delete.
+                            let checkbox = document.createElement("input");
+                            checkbox.type = "checkbox";
+                            checkbox.className = "checkbox";
+                            checkbox.value = log.LogID;
+                            tr.prepend(checkbox);
+                            tbody.appendChild(tr);
+                        });
+                        attachRowActions();
+                    } else {
+                        showNotification("Failed to load audit logs: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error loading audit logs:", error);
+                });
+        }
+
+        function attachRowActions() {
+            // View button: show user details modal.
+            document.querySelectorAll(".viewBtn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const userID = this.getAttribute("data-userid");
+                    viewUserDetails(userID);
+                });
+            });
+            // Force Logout button.
+            document.querySelectorAll(".logoutBtn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const userID = this.getAttribute("data-userid");
+                    showConfirmation("Force logout user " + userID + "?", function(confirmed) {
+                        if (confirmed) {
+                            fetch("auditlogs.php?action=forceLogout&userID=" + userID)
+                                .then(response => response.json())
+                                .then(data => {
+                                    showNotification(data.message);
+                                })
+                                .catch(error => console.error("Error forcing logout:", error));
+                        }
+                    });
+                });
+            });
+            // Restrict button.
+            document.querySelectorAll(".restrictBtn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const userID = this.getAttribute("data-userid");
+                    showConfirmation("Restrict user " + userID + "?", function(confirmed) {
+                        if (confirmed) {
+                            fetch("auditlogs.php?action=restrict", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({
+                                        userID: userID
+                                    })
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    showNotification(data.message);
+                                })
+                                .catch(error => console.error("Error restricting user:", error));
+                        }
+                    });
+                });
+            });
+            // Unrestrict button.
+            document.querySelectorAll(".unrestrictBtn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const userID = this.getAttribute("data-userid");
+                    showConfirmation("Remove restriction for user " + userID + "?", function(confirmed) {
+                        if (confirmed) {
+                            fetch("auditlogs.php?action=unrestrict", {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({
+                                        userID: userID
+                                    })
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    showNotification(data.message);
+                                })
+                                .catch(error => console.error("Error unrestricting user:", error));
+                        }
+                    });
+                });
+            });
+        }
+
+        // Function to fetch and display user details in modal.
+        function viewUserDetails(userID) {
+            fetch("auditlogs.php?action=getUser&userID=" + userID)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        let user = data.user;
+                        let details = `<p><strong>UserID:</strong> ${user.UserID}</p>
+                           <p><strong>UserName:</strong> ${user.UserName}</p>
+                           <p><strong>Email:</strong> ${user.Email}</p>
+                           <p><strong>Rule:</strong> ${user.rule ? user.rule : user.RoleID}</p>
+                           <p><strong>Created At:</strong> ${user.CreatedAt}</p>
+                           <p><strong>Updated At:</strong> ${user.UpdatedAt}</p>`;
+                        document.getElementById("userDetails").innerHTML = details;
+                        document.getElementById("userModal").style.display = "block";
+                    } else {
+                        showNotification("Failed to retrieve user details: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching user details:", error);
+                });
+        }
+
+        // Search function to filter table rows.
+        function searchAuditLogs() {
+            const input = document.getElementById("searchInput").value.toLowerCase();
+            const rows = document.querySelectorAll("#auditTable tbody tr");
+            rows.forEach(row => {
+                const userID = row.cells[1].textContent.toLowerCase();
+                const userName = row.cells[2].textContent.toLowerCase();
+                const email = row.cells[3].textContent.toLowerCase();
+                if (userID.indexOf(input) > -1 || userName.indexOf(input) > -1 || email.indexOf(input) > -1) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        }
+
+        document.getElementById("searchBtn").addEventListener("click", searchAuditLogs);
+        document.getElementById("clearSearchBtn").addEventListener("click", function() {
+            document.getElementById("searchInput").value = "";
+            searchAuditLogs();
+        });
+
+        // Bulk delete mode.
+        let deleteMode = false;
+        document.getElementById("toggleDeleteMode").addEventListener("click", function() {
+            deleteMode = !deleteMode;
+            document.querySelectorAll(".checkbox").forEach(cb => {
+                cb.style.display = deleteMode ? "inline-block" : "none";
+            });
+            document.getElementById("deleteSelectedBtn").style.display = deleteMode ? "inline-block" : "none";
+        });
+
+        document.getElementById("deleteSelectedBtn").addEventListener("click", function() {
+            let selected = [];
+            document.querySelectorAll(".checkbox").forEach(cb => {
+                if (cb.checked) {
+                    selected.push(parseInt(cb.value));
+                }
+            });
+            if (selected.length === 0) {
+                showNotification("No records selected.");
+                return;
+            }
+            showConfirmation("Delete selected audit log records?", function(confirmed) {
+                if (confirmed) {
+                    fetch("auditlogs.php?action=delete", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                logIDs: selected
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            showNotification(data.message);
+                            loadAuditLogs();
+                        })
+                        .catch(error => {
+                            console.error("Error deleting audit logs:", error);
+                        });
+                }
+            });
+        });
+
+        window.onload = loadAuditLogs;
+    </script>
+</body>
+
+</html>

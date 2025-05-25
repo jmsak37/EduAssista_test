@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Balance Management - EduAssista</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #1dbab4;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #00796b;
+      color: #fff;
+    }
+    .button {
+      background-color: #00796b;
+      color: #fff;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+    .button:hover {
+      background-color: #004d40;
+    }
+    /* Modal styling for viewing user details */
+    .modal {
+      display: none; 
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 400px;
+      border-radius: 5px;
+      position: relative;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      position: absolute;
+      right: 10px;
+      top: 5px;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    input[type="number"], input[type="text"], textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    /* Order Search Section styling */
+    #orderSearchSection {
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #ccc;
+    }
+    #orderSearchSection input[type="text"] {
+      width: 70%;
+      display: inline-block;
+    }
+    #orderSearchSection button {
+      display: inline-block;
+      margin-left: 5px;
+    }
+    /* Hidden update fields container */
+    #updateFields {
+      display: none;
+      margin-top: 15px;
+    }
+    /* Notification modal styling */
+    #notificationModal {
+      display: none;
+      position: fixed;
+      z-index: 1100;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    #notificationModal .modal-content {
+      background-color: #dff0d8;
+      border: 1px solid #d0e9c6;
+      color: #3c763d;
+      margin: 20% auto;
+      padding: 20px;
+      width: 300px;
+      border-radius: 5px;
+      text-align: center;
+      position: relative;
+    }
+    #notificationModal .modal-content .close {
+      color: #3c763d;
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Balance Management</h1>
+  <table id="balanceTable">
+    <thead>
+      <tr>
+        <th>UserID</th>
+        <th>UserName</th>
+        <th>Email</th>
+        <th>Balance</th>
+        <th>Rule</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows loaded dynamically -->
+    </tbody>
+  </table>
+
+  <!-- Modal for viewing user details -->
+  <div id="viewModal" class="modal">
+    <div class="modal-content">
+      <span id="closeViewModal" class="close">&times;</span>
+      <h2>User Details</h2>
+      <div id="userDetails">
+        <!-- User details will be loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for updating balance -->
+  <div id="updateModal" class="modal">
+    <div class="modal-content">
+      <span id="closeUpdateModal" class="close">&times;</span>
+      <h2>Update Balance</h2>
+      <form id="updateForm">
+        <input type="hidden" id="updateUserID" name="user_id">
+        <!-- Order Search Section -->
+        <div id="orderSearchSection">
+          <label for="orderIDInput">Enter Order ID:</label>
+          <input type="text" id="orderIDInput" name="order_id_search" placeholder="Order ID">
+          <button type="button" id="searchOrderBtn" class="button">Search</button>
+          <button type="button" id="continueWithoutOrderBtn" class="button">Continue without Order</button>
+          <div id="orderSearchFeedback" style="margin-top:8px; color:green;"></div>
+        </div>
+        <!-- Update Fields: initially hidden -->
+        <div id="updateFields">
+          <label for="updateAmount">Amount (use negative value to subtract):</label>
+          <input type="number" id="updateAmount" name="update_amount" step="0.01" required>
+          
+          <label for="reasonSelect">Reason:</label>
+          <select id="reasonSelect" name="reason_select" required>
+            <option value="">Select a reason</option>
+            <option value="Order Payment">Order Payment</option>
+            <option value="Refund">Refund</option>
+            <option value="Penalty">Penalty</option>
+            <option value="Adjustment">Adjustment</option>
+            <option value="Other">Other</option>
+          </select>
+          <div id="otherReasonDiv" style="display:none; margin-top:8px;">
+            <label for="otherReason">Please specify:</label>
+            <input type="text" id="otherReason" name="other_reason">
+          </div>
+          
+          <br><br>
+          <button type="submit" class="button">Submit Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Notification Modal -->
+  <div id="notificationModal" class="modal">
+    <div class="modal-content">
+      <span id="notificationClose" class="close">&times;</span>
+      <p id="notificationMessage"></p>
+    </div>
+  </div>
+
+  <script>
+    function loadBalances() {
+      fetch("balance.php?action=list")
+        .then(response => response.json())
+        .then(data => {
+          if(data.success) {
+            const tbody = document.querySelector("#balanceTable tbody");
+            tbody.innerHTML = "";
+            data.balances.forEach(record => {
+              let tr = document.createElement("tr");
+              tr.innerHTML = `<td>${record.user_id}</td>
+                              <td>${record.UserName ? record.UserName : ""}</td>
+                              <td>${record.Email ? record.Email : ""}</td>
+                              <td>${record.balance}</td>
+                              <td>${record.rule}</td>
+                              <td>
+                                <button class="button viewBtn" data-userid="${record.user_id}">View</button>
+                                <button class="button updateBtn" data-userid="${record.user_id}">Update Balance</button>
+                              </td>`;
+              tbody.appendChild(tr);
+            });
+            attachActions();
+          } else {
+            showSimpleNotification("Failed to load balances: " + data.message);
+          }
+        })
+        .catch(error => {
+          console.error("Error loading balances:", error);
+        });
+    }
+
+    function attachActions() {
+      document.querySelectorAll(".viewBtn").forEach(btn => {
+        btn.addEventListener("click", function() {
+          const userID = this.getAttribute("data-userid");
+          viewUserDetails(userID);
+        });
+      });
+      document.querySelectorAll(".updateBtn").forEach(btn => {
+        btn.addEventListener("click", function() {
+          const userID = this.getAttribute("data-userid");
+          document.getElementById("updateUserID").value = userID;
+          document.getElementById("orderIDInput").value = "";
+          document.getElementById("orderSearchFeedback").textContent = "";
+          document.getElementById("updateFields").style.display = "none";
+          document.getElementById("updateModal").style.display = "block";
+        });
+      });
+    }
+
+    function viewUserDetails(userID) {
+      fetch("balance.php?action=viewUser&user_id=" + userID)
+        .then(response => response.json())
+        .then(data => {
+          if(data.success) {
+            let user = data.user;
+            let details = `<p><strong>UserID:</strong> ${user.UserID}</p>
+                           <p><strong>UserName:</strong> ${user.UserName}</p>
+                           <p><strong>Email:</strong> ${user.Email}</p>
+                           <p><strong>Rule:</strong> ${user.rule}</p>
+                           <p><strong>Created At:</strong> ${user.CreatedAt}</p>
+                           <p><strong>Updated At:</strong> ${user.UpdatedAt}</p>`;
+            document.getElementById("userDetails").innerHTML = details;
+            document.getElementById("viewModal").style.display = "block";
+          } else {
+            showSimpleNotification("Failed to retrieve user details: " + data.message);
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching user details:", error);
+        });
+    }
+
+    // Search for order_id across database.
+    document.getElementById("searchOrderBtn").addEventListener("click", function() {
+      let orderID = document.getElementById("orderIDInput").value.trim();
+      if(orderID === "") {
+        document.getElementById("orderSearchFeedback").textContent = "Please enter an Order ID.";
+        return;
+      }
+      fetch("balance.php?action=searchOrder&order_id=" + encodeURIComponent(orderID))
+        .then(response => response.json())
+        .then(data => {
+          if(data.success) {
+            document.getElementById("orderSearchFeedback").textContent = "Order found: " + orderID;
+            document.getElementById("updateFields").style.display = "block";
+          } else {
+            document.getElementById("orderSearchFeedback").textContent = "Order not found or not associated with you.";
+            document.getElementById("updateFields").style.display = "none";
+          }
+        })
+        .catch(error => {
+          console.error("Error searching order:", error);
+        });
+    });
+    
+    // Continue without Order button.
+    document.getElementById("continueWithoutOrderBtn").addEventListener("click", function() {
+      document.getElementById("orderSearchFeedback").textContent = "Proceeding without order.";
+      document.getElementById("updateFields").style.display = "block";
+    });
+
+    // Update form submission.
+    document.getElementById("updateForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const userID = document.getElementById("updateUserID").value;
+      const updateAmount = parseFloat(document.getElementById("updateAmount").value);
+      const reasonSelect = document.getElementById("reasonSelect").value;
+      let finalReason = reasonSelect;
+      if (reasonSelect === "Other") {
+        finalReason = document.getElementById("otherReason").value;
+      }
+      const orderIDForFeedback = document.getElementById("orderIDInput").value.trim();
+      fetch("balance.php?action=update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userID, update_amount: updateAmount, reason: finalReason, order_id: orderIDForFeedback })
+      })
+      .then(response => response.json())
+      .then(data => {
+        showSimpleNotification(data.message);
+        document.getElementById("updateModal").style.display = "none";
+        loadBalances();
+      })
+      .catch(error => {
+        console.error("Error updating balance:", error);
+      });
+    });
+
+    // Show/hide custom reason field.
+    document.getElementById("reasonSelect").addEventListener("change", function() {
+      if (this.value === "Other") {
+        document.getElementById("otherReasonDiv").style.display = "block";
+      } else {
+        document.getElementById("otherReasonDiv").style.display = "none";
+      }
+    });
+
+    // Close modals.
+    document.getElementById("closeViewModal").onclick = function() {
+      document.getElementById("viewModal").style.display = "none";
+    }
+    document.getElementById("closeUpdateModal").onclick = function() {
+      document.getElementById("updateModal").style.display = "none";
+    }
+    window.onclick = function(event) {
+      if (event.target == document.getElementById("viewModal")) {
+        document.getElementById("viewModal").style.display = "none";
+      }
+      if (event.target == document.getElementById("updateModal")) {
+        document.getElementById("updateModal").style.display = "none";
+      }
+      if (event.target == document.getElementById("notificationModal")) {
+        document.getElementById("notificationModal").style.display = "none";
+      }
+      if (event.target == document.getElementById("deleteModal")) {
+        document.getElementById("deleteModal").style.display = "none";
+      }
+    };
+
+    // Custom Delete Confirmation: open modal instead of native confirm.
+    function deleteOrder(order_id) {
+      deleteOrderId = order_id;
+      document.getElementById("deleteModal").style.display = "block";
+    }
+
+    function closeDeleteModal() {
+      document.getElementById("deleteModal").style.display = "none";
+      deleteOrderId = null;
+    }
+
+    function confirmDelete() {
+      fetch("balance.php?action=delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `order_id=${deleteOrderId}`
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showSimpleNotification("Balance updated successfully!");
+          loadBalances();
+        } else {
+          showSimpleNotification("Error: " + data.message);
+        }
+        closeDeleteModal();
+      })
+      .catch(err => {
+        console.error(err);
+        showSimpleNotification("Error deleting order");
+        closeDeleteModal();
+      });
+    }
+
+    // Notification modal helper.
+    function showSimpleNotification(message) {
+      document.getElementById("notificationMessage").textContent = message;
+      document.getElementById("notificationModal").style.display = "block";
+      setTimeout(() => {
+        document.getElementById("notificationModal").style.display = "none";
+      }, 3000);
+    }
+    document.getElementById("notificationClose").onclick = function() {
+      document.getElementById("notificationModal").style.display = "none";
+    };
+
+    window.onload = loadBalances;
+  </script>
+  
+  <!-- Notification Modal -->
+  <div id="notificationModal" class="modal">
+    <div class="modal-content">
+      <span id="notificationClose" class="close">&times;</span>
+      <p id="notificationMessage"></p>
+    </div>
+  </div>
+</body>
+</html>

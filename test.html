@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Upload Blogs and Samples</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <h1>Upload Blogs and Samples</h1>
+
+    <!-- Form to upload blogs -->
+    <h2>Upload Blog</h2>
+    <form id="blogForm" method="post" action="upload.php" enctype="multipart/form-data">
+        <label for="blogTitle">Blog Title:</label>
+        <input type="text" id="blogTitle" name="blogTitle" required><br><br>
+
+        <label for="blogContent">Blog Content:</label><br>
+        <textarea id="blogContent" name="blogContent" rows="10" cols="50" required></textarea><br><br>
+
+        <label for="authorID">Author ID:</label>
+        <input type="number" id="authorID" name="authorID" required><br><br>
+
+        <label for="blogFile">Upload Blog File (optional):</label>
+        <input type="file" id="blogFile" name="blogFile"><br><br>
+
+        <input type="submit" name="submitBlog" value="Submit Blog">
+    </form>
+
+    <hr>
+
+    <!-- Form to upload samples -->
+    <h2>Upload Sample</h2>
+    <form id="sampleForm" method="post" action="upload.php" enctype="multipart/form-data">
+        <label for="sampleName">Sample Name:</label>
+        <input type="text" id="sampleName" name="sampleName" required><br><br>
+
+        <label for="sampleDescription">Sample Description:</label><br>
+        <textarea id="sampleDescription" name="sampleDescription" rows="10" cols="50" required></textarea><br><br>
+
+        <label for="sampleFile">Upload Sample File (optional):</label>
+        <input type="file" id="sampleFile" name="sampleFile"><br><br>
+
+        <input type="submit" name="submitSample" value="Submit Sample">
+    </form>
+</body>
+
+</html>

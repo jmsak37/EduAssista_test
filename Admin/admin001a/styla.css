@@ -1,0 +1,139 @@
+/* styla.css */
+
+/* General Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+header {
+    background-color: #1dbab4;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 15px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    text-align: center;
+    color: white;
+}
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+header p {
+    margin: 5px 0 0;
+}
+
+/* Navigation Bar */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #00796b;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+}
+.nav-left, .nav-right {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+nav a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+nav a:hover {
+    background-color: #004d40;
+}
+
+/* Button */
+.button {
+    background-color: #00796b;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.2s;
+}
+.button:hover {
+    background-color: #004d40;
+    transform: scale(1.1);
+}
+
+/* Main Content */
+.content {
+    padding: 20px;
+    flex: 1;
+}
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    padding: 20px;
+}
+.box {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: transform 0.2s ease;
+}
+.box:hover {
+    transform: scale(1.05);
+}
+.box h2 {
+    margin-top: 0;
+    color: #1dbab4;
+}
+
+/* Footer */
+.footer {
+    background-color: #00796b;
+    color: white;
+    padding: 20px 10px;
+    text-align: center;
+    width: 100%;
+    font-size: 12px;
+    position: relative;
+    z-index: 1000;
+}
+.footer a {
+    color: white;
+    text-decoration: none;
+}
+.footer a:hover {
+    color: #ffd700;
+    font-weight: bold;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .grid-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Modal / Error Message (for non-admin alerts) */
+.error-modal {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 20px;
+    border-radius: 5px;
+    margin: 20px;
+    text-align: center;
+    font-size: 1.2rem;
+}

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard - EduAssista</title>
+  <link rel="stylesheet" href="styla.css" />
+  <style>
+    /* General Styles */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background-color: #1dbab4;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 15px 0;
+      position: relative;
+      text-align: center;
+      color: white;
+    }
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+    .welcome {
+      padding: 10px;
+      font-size: 1.2rem;
+    }
+    /* Logout button */
+    .logout {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background-color: #00796b;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      text-decoration: none;
+    }
+    /* Admin notification area */
+    .admin-notification {
+      text-align: center;
+      margin: 20px;
+      padding: 20px;
+      background-color: #e0f7fa;
+      border: 1px solid #b2ebf2;
+      border-radius: 8px;
+    }
+    /* Button style */
+    a.button {
+      display: inline-block;
+      margin-top: 10px;
+      background-color: #00796b;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: background-color 0.3s ease, transform 0.2s;
+    }
+    a.button:hover {
+      background-color: #004d40;
+      transform: scale(1.1);
+    }
+    /* Main content: grid with four boxes */
+    .content {
+      padding: 20px;
+      flex: 1;
+    }
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    .box {
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease;
+    }
+    .box:hover {
+      transform: scale(1.05);
+    }
+    .box h2 {
+      margin-top: 0;
+      color: #1dbab4;
+    }
+    .box ol {
+      padding-left: 20px;
+    }
+    .box li {
+      margin-bottom: 5px;
+    }
+    .footer {
+      background-color: #00796b;
+      color: white;
+      padding: 20px 10px;
+      text-align: center;
+      font-size: 12px;
+    }
+    .footer a {
+      color: white;
+      text-decoration: none;
+    }
+    .footer a:hover {
+      color: #ffd700;
+      font-weight: bold;
+    }
+    /* Error message styling */
+    .error {
+      color: red;
+      text-align: center;
+      margin: 10px;
+    }
+    /* Modal styling for inactivity warning & session expiration */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 80%;
+      max-width: 500px;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      position: relative;
+      overflow-y: auto;
+      max-height: 80%;
+    }
+    .modal-button {
+      background-color: #00796b;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .modal-button:hover {
+      background-color: #004d40;
+    }
+    /* Modal for session expiration message */
+    #sessionExpireModal .modal-content {
+      width: 350px;
+      max-height: 80%;
+    }
+  </style>
+</head>
+
+<body>
+    <header>
+        <a href="../logout.php" class="logout" onclick="autoLogout();">Logout</a>
+        <h1>Admin Dashboard</h1>
+        <p class="welcome" id="welcome">Welcome, !</p>
+    </header>
+
+    <!-- Container for error messages -->
+    <div id="error-container"></div>
+
+    <!-- Container for admin notification -->
+    <div class="admin-notification" id="admin-notification"></div>
+
+    <div class="content">
+        <div class="grid-container">
+            <!-- Box 1: Admin Guidelines (15 rules) -->
+            <div class="box">
+                <h2>Admin Guidelines</h2>
+                <ol>
+                    <li>Maintain confidentiality.</li>
+                    <li>Be punctual.</li>
+                    <li>Ensure compliance.</li>
+                    <li>Communicate effectively.</li>
+                    <li>Lead by example.</li>
+                    <li>Manage resources wisely.</li>
+                    <li>Respect all users.</li>
+                    <li>Maintain professionalism.</li>
+                    <li>Enforce policies strictly.</li>
+                    <li>Monitor system performance.</li>
+                    <li>Provide timely feedback.</li>
+                    <li>Document changes.</li>
+                    <li>Support team collaboration.</li>
+                    <li>Maintain data integrity.</li>
+                    <li>Ensure transparency.</li>
+                </ol>
+            </div>
+
+            <!-- Box 2: Admin Rules (20 rules) -->
+            <div class="box">
+                <h2>Admin Rules</h2>
+                <ol>
+                    <li>Follow established guidelines.</li>
+                    <li>Respect user privacy.</li>
+                    <li>Maintain system security.</li>
+                    <li>Verify user credentials.</li>
+                    <li>Manage user roles appropriately.</li>
+                    <li>Ensure timely responses.</li>
+                    <li>Monitor activity logs.</li>
+                    <li>Implement regular audits.</li>
+                    <li>Update policies when needed.</li>
+                    <li>Train new staff.</li>
+                    <li>Ensure resource allocation.</li>
+                    <li>Review user feedback.</li>
+                    <li>Maintain integrity in decisions.</li>
+                    <li>Follow escalation procedures.</li>
+                    <li>Keep informed of changes.</li>
+                    <li>Document admin actions.</li>
+                    <li>Ensure compliance with laws.</li>
+                    <li>Coordinate with support.</li>
+                    <li>Manage emergency protocols.</li>
+                    <li>Provide performance reviews.</li>
+                </ol>
+            </div>
+
+            <!-- Box 3: Tutor Quality Assurance (23 rules) -->
+            <div class="box">
+                <h2>Tutor Quality Assurance</h2>
+                <ol>
+                    <li>Verify tutor credentials.</li>
+                    <li>Ensure subject expertise.</li>
+                    <li>Monitor session quality.</li>
+                    <li>Provide constructive feedback.</li>
+                    <li>Set clear expectations.</li>
+                    <li>Encourage continuous learning.</li>
+                    <li>Maintain professional conduct.</li>
+                    <li>Address issues promptly.</li>
+                    <li>Support tutor development.</li>
+                    <li>Enforce guidelines strictly.</li>
+                    <li>Facilitate training sessions.</li>
+                    <li>Monitor tutor performance.</li>
+                    <li>Use quality metrics.</li>
+                    <li>Secure session recordings.</li>
+                    <li>Gather student feedback.</li>
+                    <li>Provide performance incentives.</li>
+                    <li>Address disciplinary issues.</li>
+                    <li>Encourage peer reviews.</li>
+                    <li>Maintain updated materials.</li>
+                    <li>Align sessions with curriculum.</li>
+                    <li>Monitor scheduling conflicts.</li>
+                    <li>Ensure tutor punctuality.</li>
+                    <li>Review performance metrics regularly.</li>
+                </ol>
+            </div>
+
+            <!-- Box 4: Management Policies (18 rules) -->
+            <div class="box">
+                <h2>Management Policies</h2>
+                <ol>
+                    <li>Maintain clear communication.</li>
+                    <li>Manage client relations professionally.</li>
+                    <li>Enforce tutor accountability.</li>
+                    <li>Follow escalation protocols.</li>
+                    <li>Monitor performance indicators.</li>
+                    <li>Ensure policy compliance.</li>
+                    <li>Provide clear guidelines.</li>
+                    <li>Coordinate with support staff.</li>
+                    <li>Manage conflict resolution.</li>
+                    <li>Ensure regular updates.</li>
+                    <li>Maintain transparent records.</li>
+                    <li>Review feedback systematically.</li>
+                    <li>Address issues swiftly.</li>
+                    <li>Document administrative actions.</li>
+                    <li>Provide training opportunities.</li>
+                    <li>Manage budget allocations.</li>
+                    <li>Ensure client satisfaction.</li>
+                    <li>Follow termination protocols.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>
+            2024 © EduAssista. All rights reserved. Contact us at
+            <a href="mailto:jmsak37@gmail.com">jmsak37@gmail.com</a> or call +25469089734.
+        </p>
+    </div>
+
+    <!-- Inactivity Modal -->
+    <div id="inactivityModal" class="modal">
+        <div class="modal-content">
+            <h2>Session Timeout Warning</h2>
+            <p>You have been inactive for a while. Do you want to stay logged in?</p>
+            <button id="stayLoggedIn" class="modal-button">Stay Logged In</button>
+            <p id="countdown">10:00</p>
+        </div>
+    </div>
+
+    <!-- Session Expiration Modal (for logout reason) -->
+    <div id="sessionExpireModal" class="modal">
+      <div class="modal-content">
+        <h2>Session Expired</h2>
+        <p id="expireReason">Your session has ended.</p>
+        <button id="sessionExpireOk" class="modal-button">OK</button>
+      </div>
+    </div>
+
+    <script>
+        // Dashboard data loading (example)
+        document.addEventListener("DOMContentLoaded", function() {
+            fetch("dashboard.php?action=data")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById("error-container").innerHTML = "<div class='error'>" + data.error + "</div>";
+                    }
+                    document.getElementById("welcome").innerHTML = "Welcome, " + data.userName + "!";
+                    document.getElementById("admin-notification").innerHTML = data.adminNotification;
+                })
+                .catch(err => {
+                    document.getElementById("error-container").innerHTML = "<div class='error'>Error loading dashboard data.</div>";
+                    console.error(err);
+                });
+        });
+
+        // Inactivity timeout settings
+        const inactivityLimit = 15 * 60 * 1000; // 15 minutes (in ms)
+        const modalTimeout = 10 * 60; // 10 minutes (in seconds)
+        let inactivityTimer;
+        let modalCountdownTimer;
+        let remainingTime = modalTimeout;
+
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(showInactivityModal, inactivityLimit);
+        }
+
+        function showInactivityModal() {
+            document.getElementById("inactivityModal").style.display = "block";
+            remainingTime = modalTimeout;
+            document.getElementById("countdown").textContent = formatTime(remainingTime);
+            modalCountdownTimer = setInterval(() => {
+                remainingTime--;
+                document.getElementById("countdown").textContent = formatTime(remainingTime);
+                if (remainingTime <= 0) {
+                    clearInterval(modalCountdownTimer);
+                    window.location.href = "../logout.php";
+                }
+            }, 1000);
+        }
+
+        function hideInactivityModal() {
+            document.getElementById("inactivityModal").style.display = "none";
+            clearInterval(modalCountdownTimer);
+            resetInactivityTimer();
+        }
+
+        function formatTime(seconds) {
+            const min = Math.floor(seconds / 60);
+            const sec = seconds % 60;
+            return (min < 10 ? "0" + min : min) + ":" + (sec < 10 ? "0" + sec : sec);
+        }
+
+        // Reset inactivity timer on any user activity
+        ["mousemove", "keydown", "click", "scroll"].forEach(event => {
+            document.addEventListener(event, resetInactivityTimer);
+        });
+
+        // "Stay Logged In" button event
+        document.getElementById("stayLoggedIn").addEventListener("click", hideInactivityModal);
+
+        // Session check every second
+        function checkSession() {
+            fetch("../check_session.php", { credentials: "include" })
+              .then(response => response.json())
+              .then(data => {
+                if (!data.inSession) {
+                  // Show the session expiration modal with the reason (if provided)
+                  document.getElementById("expireReason").textContent = data.reason ? "Logging out: " + data.reason : "Your session has ended.";
+                  document.getElementById("sessionExpireModal").style.display = "block";
+                }
+              })
+              .catch(error => {
+                console.error("Error checking session:", error);
+                window.location.href = "../login.html";
+              });
+        }
+        setInterval(checkSession, 1000);
+
+        // Auto logout after 48 hours (optional)
+        setTimeout(function(){
+            window.location.href = "../logout.php";
+        }, 172800000);
+
+        // Session Expiration Modal OK button
+        document.getElementById("sessionExpireOk").addEventListener("click", function(){
+          window.location.href = "../login.html";
+        });
+
+        // Close modals on click outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll(".modal");
+            modals.forEach(modal => {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            });
+        };
+    </script>
+</body>
+</html>

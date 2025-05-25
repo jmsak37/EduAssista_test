@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Orders Management - EduAssista</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f5f5f5;
+    }
+    h1 {
+      text-align: center;
+      color: #1dbab4;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #00796b;
+      color: #fff;
+    }
+    .button {
+      background-color: #00796b;
+      color: #fff;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 5px;
+      text-decoration: none;
+    }
+    .button:hover {
+      background-color: #004d40;
+    }
+    /* Style for document names: each file in its own block with separation */
+    .docName {
+      border-bottom: 1px solid #ddd;
+      padding: 4px 0;
+    }
+    .docName a {
+      text-decoration: underline;
+      color: #00796b;
+    }
+    /* Modal styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1100;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 400px;
+      border-radius: 5px;
+      position: relative;
+      box-sizing: border-box;
+      max-height: 80%;
+      overflow-y: auto;
+    }
+    /* Smaller assign modal */
+    #assignModal .modal-content {
+      width: 350px;
+    }
+    #assignModal ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #assignModal li {
+      margin: 8px 0;
+    }
+    #assignModal li button {
+      width: 100%;
+      padding: 8px;
+      border: none;
+      background-color: #00796b;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    #assignModal li button:hover {
+      background-color: #004d40;
+    }
+    /* Delete confirmation modal */
+    #deleteModal .modal-content {
+      width: 300px;
+      text-align: center;
+    }
+    .close {
+      color: #aaa;
+      font-size: 24px;
+      font-weight: bold;
+      position: absolute;
+      right: 10px;
+      top: 5px;
+      cursor: pointer;
+    }
+    /* Notification Modal styling */
+    #notificationModal {
+      display: none;
+      position: fixed;
+      z-index: 1200;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    #notificationModal .modal-content {
+      background-color: #dff0d8;
+      border: 1px solid #d0e9c6;
+      color: #3c763d;
+      margin: 20% auto;
+      padding: 20px;
+      width: 300px;
+      border-radius: 5px;
+      text-align: center;
+      position: relative;
+    }
+    #notificationModal .modal-content .close {
+      color: #3c763d;
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      font-size: 24px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Orders Management</h1>
+  <table id="ordersTable">
+    <thead>
+      <tr>
+        <th>Order ID</th>
+        <th>Client ID</th>
+        <th>Tutor ID</th>
+        <th>Subject</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Instructions</th>
+        <th>Deadline</th>
+        <th>Price</th>
+        <th>Pages</th>
+        <th>Status</th>
+        <th>Created At</th>
+        <th>Updated At</th>
+        <th>Document Names</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Orders will be loaded dynamically -->
+    </tbody>
+  </table>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeDeleteModal()">&times;</span>
+      <p>Are you sure you want to delete this order?</p>
+      <button class="button" onclick="confirmDelete()">Yes</button>
+      <button class="button" onclick="closeDeleteModal()">No</button>
+    </div>
+  </div>
+
+  <!-- Assign Order Modal -->
+  <div id="assignModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeAssignModal()">&times;</span>
+      <h3>Assign Order to Tutor</h3>
+      <p>Order ID: <span id="assignOrderID"></span></p>
+      <ul id="tutorsList">
+        <!-- Tutor list will be populated dynamically -->
+      </ul>
+    </div>
+  </div>
+
+  <!-- Notification Modal -->
+  <div id="notificationModal" class="modal">
+    <div class="modal-content">
+      <span id="notificationClose" class="close">&times;</span>
+      <p id="notificationMessage"></p>
+    </div>
+  </div>
+
+  <script>
+    let orders = [];
+    let selectedOrderID = null;
+    let deleteOrderID = null;
+
+    function loadOrders() {
+      fetch("orders.php?action=list")
+        .then(response => response.json())
+        .then(data => {
+          if(data.success) {
+            orders = data.orders;
+            populateOrdersTable();
+          } else {
+            showNotification("Failed to load orders: " + data.message);
+          }
+        })
+        .catch(error => console.error("Error loading orders:", error));
+    }
+
+    function populateOrdersTable() {
+      const tbody = document.querySelector("#ordersTable tbody");
+      tbody.innerHTML = "";
+      orders.forEach(order => {
+        // Process document_name: split by commas and display as numbered links in separate lines.
+        let files = order.document_name.split(",");
+        files = files.map(f => f.trim()).filter(f => f !== "");
+        let docNamesHTML = files.map((f, idx) => `<div class="docName">${idx+1}. <a href="view_orders.php?order_id=${order.order_id}&file=${encodeURIComponent(f)}">${f}</a></div>`).join("");
+        
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${order.order_id}</td>
+          <td>${order.client_id}</td>
+          <td>${order.tutor_id || ""}</td>
+          <td>${order.subject}</td>
+          <td>${order.name}</td>
+          <td>${order.description}</td>
+          <td>${order.instructions}</td>
+          <td>${order.deadline}</td>
+          <td>${order.price}</td>
+          <td>${order.number_of_pages}</td>
+          <td>${order.status}</td>
+          <td>${order.created_at}</td>
+          <td>${order.updated_at}</td>
+          <td>${docNamesHTML}</td>
+          <td>
+            <button class="button" onclick="deleteOrder('${order.order_id}')">Delete Order</button>
+            <button class="button" onclick="assignOrder('${order.order_id}')">Assign Order</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function deleteOrder(orderID) {
+      deleteOrderID = orderID;
+      document.getElementById("deleteModal").style.display = "block";
+    }
+
+    function closeDeleteModal() {
+      document.getElementById("deleteModal").style.display = "none";
+      deleteOrderID = null;
+    }
+
+    function confirmDelete() {
+      fetch("orders.php?action=delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: deleteOrderID })
+      })
+      .then(response => response.json())
+      .then(data => {
+        showNotification(data.message);
+        closeDeleteModal();
+        loadOrders();
+      })
+      .catch(error => {
+        console.error("Error deleting order:", error);
+        closeDeleteModal();
+      });
+    }
+
+    function assignOrder(orderID) {
+      selectedOrderID = orderID;
+      document.getElementById("assignOrderID").textContent = orderID;
+      fetch("orders.php?action=listTutors")
+        .then(response => response.json())
+        .then(data => {
+          if(data.success) {
+            const tutorsList = document.getElementById("tutorsList");
+            tutorsList.innerHTML = "";
+            data.tutors.forEach(tutor => {
+              let li = document.createElement("li");
+              li.innerHTML = `<button onclick="selectTutor(${tutor.UserID})">${tutor.UserName}</button>`;
+              tutorsList.appendChild(li);
+            });
+            document.getElementById("assignModal").style.display = "block";
+          } else {
+            showNotification("Failed to load tutors: " + data.message);
+          }
+        })
+        .catch(error => console.error("Error loading tutors:", error));
+    }
+
+    function closeAssignModal() {
+      document.getElementById("assignModal").style.display = "none";
+      selectedOrderID = null;
+    }
+
+    function selectTutor(tutorID) {
+      fetch("orders.php?action=assign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order_id: selectedOrderID, tutor_id: tutorID })
+      })
+      .then(response => response.json())
+      .then(data => {
+        showNotification(data.message);
+        closeAssignModal();
+        loadOrders();
+      })
+      .catch(error => {
+        console.error("Error assigning order:", error);
+        closeAssignModal();
+      });
+    }
+
+    function showNotification(message) {
+      document.getElementById("notificationMessage").textContent = message;
+      document.getElementById("notificationModal").style.display = "block";
+      setTimeout(() => {
+        document.getElementById("notificationModal").style.display = "none";
+      }, 3000);
+    }
+
+    // Close modal event listeners.
+    document.getElementById("notificationClose").addEventListener("click", function() {
+      document.getElementById("notificationModal").style.display = "none";
+    });
+    window.onclick = function(event) {
+      if (event.target == document.getElementById("deleteModal")) {
+        closeDeleteModal();
+      }
+      if (event.target == document.getElementById("assignModal")) {
+        closeAssignModal();
+      }
+      if (event.target == document.getElementById("notificationModal")) {
+        document.getElementById("notificationModal").style.display = "none";
+      }
+    };
+
+    window.onload = loadOrders;
+  </script>
+
+  <!-- Notification Modal -->
+  <div id="notificationModal" class="modal">
+    <div class="modal-content">
+      <span id="notificationClose" class="close">&times;</span>
+      <p id="notificationMessage"></p>
+    </div>
+  </div>
+</body>
+</html>

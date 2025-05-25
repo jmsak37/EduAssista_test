@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revision Orders</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* General styles */
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        a.download-link {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        
+        a.download-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Your Revision Orders</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Order Name</th>
+                    <th>Created At</th>
+                    <th>Tutor ID</th>
+                    <th>Download</th>
+                </tr>
+            </thead>
+            <tbody id="revision-orders-table">
+                <!-- Orders will be populated here -->
+                <tr>
+                    <td colspan="5">Loading revision orders...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Function to get user ID from session or a hidden element
+        function getUserId() {
+            // Example of getting user ID from session via a hidden field in the HTML
+            const userIdElement = document.getElementById('user-id');
+            return userIdElement ? userIdElement.value : null;
+        }
+
+        // Fetch revision orders and display them in the table
+        function loadRevisionOrders() {
+            const userId = getUserId();
+            if (!userId) {
+                console.error('User ID not found.');
+                return;
+            }
+
+            fetch(`fetch_revision_orders.php?userID=${userId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const ordersTable = document.getElementById('revision-orders-table');
+                    ordersTable.innerHTML = ''; // Clear existing content
+
+                    if (data.orders.length > 0) {
+                        data.orders.forEach(order => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${order.id}</td>
+                                <td><a href="${order.file_path}" class="download-link" download>${order.name}</a></td>
+                                <td>${order.created_at}</td>
+                                <td>${order.tutorID}</td>
+                                <td><a href="${order.file_path}" download>Download</a></td>
+                            `;
+                            ordersTable.appendChild(row);
+                        });
+                    } else {
+                        ordersTable.innerHTML = '<tr><td colspan="5">No revision orders found.</td></tr>';
+                    }
+                })
+                .catch(error => console.error('Error fetching revision orders:', error));
+        }
+
+        // Load revision orders when the page is loaded
+        window.onload = function() {
+            loadRevisionOrders();
+        };
+    </script>
+
+    <!-- Hidden input to store user ID -->
+    <input type="hidden" id="user-id" value="<?php echo $_SESSION['userID']; ?>">
+    <!-- Example of dynamically setting user ID -->
+</body>
+
+</html>

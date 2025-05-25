@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Pricing Management - EduAssista</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1dbab4;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            margin-top: 20px;
+        }
+        
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+        }
+        
+        th,
+        td {
+            padding: 10px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #00796b;
+            color: #fff;
+        }
+        
+        .button {
+            background-color: #00796b;
+            color: #fff;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+            text-decoration: none;
+        }
+        
+        .button:hover {
+            background-color: #004d40;
+        }
+        /* Add New Button styling */
+        
+        #addNewBtn {
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        /* Modal base styling */
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 400px;
+            border-radius: 5px;
+            position: relative;
+            box-sizing: border-box;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 24px;
+            font-weight: bold;
+            position: absolute;
+            right: 10px;
+            top: 5px;
+            cursor: pointer;
+        }
+        
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        input[type="submit"],
+        button.modal-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        input[type="submit"]:hover,
+        button.modal-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Pricing Management</h1>
+    <div style="text-align: center;">
+        <button id="addNewBtn" class="button" onclick="openAddModal()">Add New Writer Type</button>
+    </div>
+    <table id="pricingTable">
+        <thead>
+            <tr>
+                <th>Writer Type</th>
+                <th>Price per Page</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Pricing records will be loaded dynamically -->
+        </tbody>
+    </table>
+
+    <!-- Add New Writer Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddModal()">&times;</span>
+            <h2>Add New Writer Type</h2>
+            <form id="addForm">
+                <label for="writerTypeAdd">Writer Type:</label>
+                <input type="text" id="writerTypeAdd" name="writer_type" required>
+                <label for="pricePerPageAdd">Price per Page:</label>
+                <input type="number" id="pricePerPageAdd" name="price_per_page" step="0.01" required>
+                <input type="submit" value="Add">
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Writer Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h2>Edit Writer Price</h2>
+            <form id="editForm">
+                <!-- Hidden field to hold writer type identifier -->
+                <input type="hidden" id="writerTypeEdit" name="writer_type">
+                <label for="pricePerPageEdit">Price per Page:</label>
+                <input type="number" id="pricePerPageEdit" name="price_per_page" step="0.01" required>
+                <input type="submit" value="Save">
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeDeleteModal()">&times;</span>
+            <h3>Confirm Deletion</h3>
+            <p>Are you sure you want to delete this writer type?</p>
+            <button class="modal-btn" onclick="confirmDelete()">Yes</button>
+            <button class="modal-btn" onclick="closeDeleteModal()">No</button>
+        </div>
+    </div>
+
+    <!-- Notification Modal -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content">
+            <span id="notificationClose" class="close" onclick="closeNotification()">&times;</span>
+            <p id="notificationMessage"></p>
+        </div>
+    </div>
+
+    <script>
+        let pricingRecords = [];
+        let selectedWriterType = null;
+
+        function loadPricing() {
+            fetch("pricing.php?action=list")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        pricingRecords = data.pricing;
+                        populatePricingTable();
+                    } else {
+                        showNotification("Failed to load pricing: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error loading pricing:", error);
+                    showNotification("Error loading pricing.");
+                });
+        }
+
+        function populatePricingTable() {
+            const tbody = document.querySelector("#pricingTable tbody");
+            tbody.innerHTML = "";
+            pricingRecords.forEach(record => {
+                let tr = document.createElement("tr");
+                tr.innerHTML = `
+          <td>${record.writer_type}</td>
+          <td>${record.price_per_page}</td>
+          <td>
+            <button class="button" onclick="openEditModal('${record.writer_type}', ${record.price_per_page})">Edit</button>
+            <button class="button" onclick="openDeleteModal('${record.writer_type}')">Delete</button>
+          </td>
+        `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Add Modal functions
+        function openAddModal() {
+            document.getElementById("addModal").style.display = "block";
+        }
+
+        function closeAddModal() {
+            document.getElementById("addModal").style.display = "none";
+        }
+        document.getElementById("addForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch("pricing.php?action=add", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showNotification(data.message);
+                    closeAddModal();
+                    loadPricing();
+                })
+                .catch(error => {
+                    console.error("Error adding pricing record:", error);
+                    showNotification("Error adding pricing record.");
+                });
+        });
+
+        // Edit Modal functions
+        function openEditModal(writerType, pricePerPage) {
+            selectedWriterType = writerType;
+            document.getElementById("writerTypeEdit").value = writerType;
+            document.getElementById("pricePerPageEdit").value = pricePerPage;
+            document.getElementById("editModal").style.display = "block";
+        }
+
+        function closeEditModal() {
+            document.getElementById("editModal").style.display = "none";
+        }
+        document.getElementById("editForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch("pricing.php?action=update", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showNotification(data.message);
+                    closeEditModal();
+                    loadPricing();
+                })
+                .catch(error => {
+                    console.error("Error updating pricing record:", error);
+                    showNotification("Error updating pricing record.");
+                });
+        });
+
+        // Delete Modal functions
+        function openDeleteModal(writerType) {
+            selectedWriterType = writerType;
+            document.getElementById("deleteModal").style.display = "block";
+        }
+
+        function closeDeleteModal() {
+            document.getElementById("deleteModal").style.display = "none";
+        }
+
+        function confirmDelete() {
+            fetch("pricing.php?action=delete", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        writer_type: selectedWriterType
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    showNotification(data.message);
+                    closeDeleteModal();
+                    loadPricing();
+                })
+                .catch(error => {
+                    console.error("Error deleting pricing record:", error);
+                    showNotification("Error deleting pricing record.");
+                });
+        }
+
+        // Notification Modal functions
+        function showNotification(message) {
+            document.getElementById("notificationMessage").textContent = message;
+            document.getElementById("notificationModal").style.display = "block";
+            setTimeout(closeNotification, 3000);
+        }
+
+        function closeNotification() {
+            document.getElementById("notificationModal").style.display = "none";
+        }
+
+        window.onload = loadPricing;
+    </script>
+</body>
+
+</html>

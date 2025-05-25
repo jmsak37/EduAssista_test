@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Clients Management</title>
+  <style>
+    /* Overall page styling */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    /* Error message container */
+    #errorMessage {
+      color: red;
+      text-align: center;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    /* Table styling */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #fff;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #4CAF50;
+      color: #fff;
+    }
+    tr:hover {
+      background-color: #f5f5f5;
+    }
+    /* Action button styling */
+    .action-btn {
+      padding: 6px 10px;
+      margin-right: 5px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .restrict-btn {
+      background-color: #f44336;
+      color: #fff;
+    }
+    .unrestrict-btn {
+      background-color: #4CAF50;
+      color: #fff;
+    }
+    .view-btn {
+      background-color: #2196F3;
+      color: #fff;
+    }
+    .edit-btn {
+      background-color: #FF9800;
+      color: #fff;
+    }
+    /* Modal styling */
+    .modal {
+      display: none; 
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.7);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 400px;
+      border-radius: 8px;
+      position: relative;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover,
+    .close:focus {
+      color: black;
+    }
+    .modal input[type="text"],
+    .modal input[type="email"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .modal input[type="submit"] {
+      background-color: #4CAF50;
+      color: #fff;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .modal input[type="submit"]:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>Clients Management</h1>
+  <!-- Error message container -->
+  <div id="errorMessage"></div>
+  
+  <table id="clientsTable">
+    <thead>
+      <tr>
+        <th>UserID</th>
+        <th>Educational Level</th>
+        <th>Preferred Subject</th>
+        <th>Created At</th>
+        <th>Updated At</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows will be generated dynamically -->
+    </tbody>
+  </table>
+
+  <!-- View Details Modal -->
+  <div id="viewModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeViewModal()">&times;</span>
+      <h2>Client Details</h2>
+      <div id="clientDetails" style="font-size:14px; white-space: pre-wrap;"></div>
+    </div>
+  </div>
+
+  <!-- Edit Info Modal -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeEditModal()">&times;</span>
+      <h2>Edit Client Info</h2>
+      <form id="editForm">
+        <input type="hidden" id="editUserID" name="UserID">
+        <label for="educationalLevel">Educational Level:</label>
+        <input type="text" id="educationalLevel" name="EducationalLevel" required>
+        <label for="preferredSubject">Preferred Subject:</label>
+        <input type="text" id="preferredSubject" name="PreferredSubject" required>
+        <input type="submit" value="Save">
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Global variable to store client data
+    let clientsData = [];
+
+    // Function to display error messages in the error container
+    function showError(message) {
+      document.getElementById('errorMessage').innerText = message;
+    }
+    function clearError() {
+      document.getElementById('errorMessage').innerText = "";
+    }
+
+    // Load clients data from clients.php
+    function loadClients() {
+      clearError();
+      fetch('clients.php')
+      .then(response => response.json())
+      .then(data => {
+        if(data.status === 'success'){
+          clientsData = data.clients;
+          populateTable();
+        } else {
+          showError('Error loading clients: ' + data.message);
+        }
+      })
+      .catch(error => {
+        showError('Error loading clients: ' + error);
+        console.error('Error:', error);
+      });
+    }
+
+    // Populate the clients table with data
+    function populateTable() {
+      const tbody = document.querySelector('#clientsTable tbody');
+      tbody.innerHTML = "";
+      clientsData.forEach(client => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${client.UserID}</td>
+          <td>${client.EducationalLevel || ""}</td>
+          <td>${client.PreferredSubject || ""}</td>
+          <td>${client.created_at}</td>
+          <td>${client.updated_at}</td>
+          <td>
+            <button class="action-btn ${client.restricted ? 'unrestrict-btn' : 'restrict-btn'}" onclick="toggleRestriction(${client.UserID}, ${client.restricted})">
+              ${client.restricted ? 'Unrestrict' : 'Restrict'}
+            </button>
+            <button class="action-btn view-btn" onclick="viewDetails(${client.UserID})">View Details</button>
+            <button class="action-btn edit-btn" onclick="openEditModal(${client.UserID})">Edit Info</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Toggle restriction for a client
+    function toggleRestriction(userID, isRestricted) {
+      clearError();
+      const action = isRestricted ? 'unrestrict' : 'restrict';
+      fetch('clients.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `action=${action}&UserID=${userID}`
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.status === 'success'){
+          loadClients();
+        } else {
+          showError('Error: ' + data.message);
+        }
+      })
+      .catch(error => {
+        showError('Error: ' + error);
+        console.error('Error:', error);
+      });
+    }
+
+    // Display the "View Details" modal for the given client
+    function viewDetails(userID) {
+      clearError();
+      // Use a loose equality check (==) to match even if types differ.
+      const client = clientsData.find(c => c.UserID == userID);
+      if(client) {
+        const details = `UserID: ${client.UserID}\n` +
+                        `Role: ${client.RoleID == 1 ? 'Client' : (client.RoleID == 2 ? 'Tutor' : 'Admin')}\n` +
+                        `UserName: ${client.UserName}\n` +
+                        `Email: ${client.Email}\n` +
+                        `Created At: ${client.userCreated}\n` +
+                        `Updated At: ${client.userUpdated}`;
+        document.getElementById('clientDetails').innerText = details;
+        document.getElementById('viewModal').style.display = 'block';
+      } else {
+        showError('Client details not found.');
+      }
+    }
+    function closeViewModal() {
+      document.getElementById('viewModal').style.display = 'none';
+    }
+
+    // Display the "Edit Info" modal pre-filled with client info
+    function openEditModal(userID) {
+      clearError();
+      // Use a loose equality check (==) to ensure matching even if types differ.
+      const client = clientsData.find(c => c.UserID == userID);
+      if(client) {
+        document.getElementById('editUserID').value = client.UserID;
+        document.getElementById('educationalLevel').value = client.EducationalLevel || "";
+        document.getElementById('preferredSubject').value = client.PreferredSubject || "";
+        document.getElementById('editModal').style.display = 'block';
+      } else {
+        showError('Client info not found.');
+      }
+    }
+    function closeEditModal() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    // Handle form submission for editing client info
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      clearError();
+      const userID = document.getElementById('editUserID').value;
+      const educationalLevel = document.getElementById('educationalLevel').value;
+      const preferredSubject = document.getElementById('preferredSubject').value;
+      fetch('clients.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `action=update&UserID=${userID}&EducationalLevel=${encodeURIComponent(educationalLevel)}&PreferredSubject=${encodeURIComponent(preferredSubject)}`
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.status === 'success'){
+          closeEditModal();
+          loadClients();
+        } else {
+          showError('Error: ' + data.message);
+        }
+      })
+      .catch(error => {
+        showError('Error: ' + error);
+        console.error('Error:', error);
+      });
+    });
+
+    // Close modals when clicking outside of modal content
+    window.onclick = function(event) {
+      const viewModal = document.getElementById('viewModal');
+      const editModal = document.getElementById('editModal');
+      if(event.target == viewModal) {
+        viewModal.style.display = 'none';
+      }
+      if(event.target == editModal) {
+        editModal.style.display = 'none';
+      }
+    };
+
+    window.addEventListener('load', loadClients);
+  </script>
+</body>
+</html>

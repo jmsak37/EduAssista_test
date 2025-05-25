@@ -1,0 +1,88 @@
+[19-Jan-2025 14:43:04 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php:83
+Stack trace:
+#0 C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php(83): mysqli->prepare('INSERT INTO ord...')
+#1 {main}
+  thrown in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php on line 83
+[19-Jan-2025 14:43:08 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php:83
+Stack trace:
+#0 C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php(83): mysqli->prepare('INSERT INTO ord...')
+#1 {main}
+  thrown in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php on line 83
+[19-Jan-2025 14:44:12 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php:83
+Stack trace:
+#0 C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php(83): mysqli->prepare('INSERT INTO ord...')
+#1 {main}
+  thrown in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php on line 83
+[19-Jan-2025 14:44:16 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php:83
+Stack trace:
+#0 C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php(83): mysqli->prepare('INSERT INTO ord...')
+#1 {main}
+  thrown in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php on line 83
+[19-Jan-2025 14:44:21 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php:83
+Stack trace:
+#0 C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php(83): mysqli->prepare('INSERT INTO ord...')
+#1 {main}
+  thrown in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php on line 83
+[19-Jan-2025 14:44:24 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php:83
+Stack trace:
+#0 C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php(83): mysqli->prepare('INSERT INTO ord...')
+#1 {main}
+  thrown in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php on line 83
+[19-Jan-2025 14:44:40 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php:83
+Stack trace:
+#0 C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php(83): mysqli->prepare('INSERT INTO ord...')
+#1 {main}
+  thrown in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php on line 83
+[19-Jan-2025 14:45:04 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php:83
+Stack trace:
+#0 C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php(83): mysqli->prepare('INSERT INTO ord...')
+#1 {main}
+  thrown in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php on line 83
+[19-Jan-2025 14:45:20 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php:83
+Stack trace:
+#0 C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php(83): mysqli->prepare('INSERT INTO ord...')
+#1 {main}
+  thrown in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php on line 83
+[19-Jan-2025 14:45:22 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php:83
+Stack trace:
+#0 C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php(83): mysqli->prepare('INSERT INTO ord...')
+#1 {main}
+  thrown in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php on line 83
+[19-Jan-2025 14:45:25 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php:83
+Stack trace:
+#0 C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php(83): mysqli->prepare('INSERT INTO ord...')
+#1 {main}
+  thrown in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php on line 83
+[19-Jan-2025 14:45:33 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php:83
+Stack trace:
+#0 C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php(83): mysqli->prepare('INSERT INTO ord...')
+#1 {main}
+  thrown in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php on line 83
+[19-Jan-2025 14:45:36 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php:83
+Stack trace:
+#0 C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php(83): mysqli->prepare('INSERT INTO ord...')
+#1 {main}
+  thrown in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php on line 83
+[19-Jan-2025 14:47:18 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php:86
+Stack trace:
+#0 C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php(86): mysqli->prepare('INSERT INTO ord...')
+#1 {main}
+  thrown in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php on line 86
+[19-Jan-2025 14:47:23 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php:86
+Stack trace:
+#0 C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php(86): mysqli->prepare('INSERT INTO ord...')
+#1 {main}
+  thrown in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php on line 86
+[19-Jan-2025 14:47:25 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php:86
+Stack trace:
+#0 C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php(86): mysqli->prepare('INSERT INTO ord...')
+#1 {main}
+  thrown in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php on line 86
+[19-Jan-2025 14:48:33 Europe/Berlin] PHP Fatal error:  Uncaught mysqli_sql_exception: Column count doesn't match value count at row 1 in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php:91
+Stack trace:
+#0 C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php(91): mysqli->prepare('INSERT INTO ord...')
+#1 {main}
+  thrown in C:\XAMPP4\htdocs\EduAssista\Client\submit_order.php on line 91
+[19-Jan-2025 14:51:57 Europe/Berlin] PHP Notice:  session_start(): Ignoring session_start() because a session is already active in C:\XAMPP4\htdocs\EduAssista\Client\order.php on line 173
+[19-Jan-2025 14:51:59 Europe/Berlin] PHP Notice:  session_start(): Ignoring session_start() because a session is already active in C:\XAMPP4\htdocs\EduAssista\Client\order.php on line 173
+[19-Jan-2025 14:52:00 Europe/Berlin] PHP Notice:  session_start(): Ignoring session_start() because a session is already active in C:\XAMPP4\htdocs\EduAssista\Client\order.php on line 173

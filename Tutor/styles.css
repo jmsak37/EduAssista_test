@@ -1,0 +1,145 @@
+/* General styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    line-height: 1.6;
+}
+
+/* Navigation Bar */
+.navbar {
+    background-color: #1dbab4;
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.navbar a {
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 14px 20px;
+    text-decoration: none;
+}
+
+.navbar a:hover {
+    background-color: #004d40;
+    border-radius: 4px;
+}
+
+/* Footer */
+.footer {
+    background-color: #00796b;
+    color: white;
+    padding: 20px 10px;
+    text-align: center;
+    width: 100%;
+    font-size: 12px;
+    margin-top: auto;
+}
+
+.footer a {
+    color: white;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    color: #ffd700;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+/* Dashboard Container */
+.dashboard-container {
+    width: 80%;
+    margin: 20px auto;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+}
+
+.header .username {
+    font-weight: bold;
+}
+
+.header .help-btn {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+.header .help-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Dashboard Grid */
+.dashboard-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+/* Dashboard Boxes */
+.box {
+    flex: 1;
+    min-width: 300px;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+/* Buttons */
+.btn {
+    display: block;
+    margin: 10px auto;
+    padding: 10px 15px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 80%;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .dashboard-container {
+        width: 95%;
+    }
+
+    .dashboard-box {
+        flex-direction: column;
+    }
+
+    .box {
+        width: 100%;
+    }
+}

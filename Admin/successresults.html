@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Success Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        
+        .success-window {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 300px;
+            max-width: 100%;
+        }
+        
+        .success-window h2 {
+            color: #4CAF50;
+            margin: 0 0 10px;
+        }
+        
+        .success-window p {
+            margin: 0 0 20px;
+        }
+        
+        .success-window button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .success-window button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="success-window">
+        <h2>Success!</h2>
+        <p id="message">Registration successful. Redirecting to login page...</p>
+        <button onclick="redirectToLogin()">Go to Login</button>
+    </div>
+
+    <script>
+        function redirectToLogin() {
+            window.location.href = '../login.html';
+        }
+
+        // Automatically redirect after 3 seconds
+        setTimeout(function() {
+            redirectToLogin();
+        }, 3000); // Redirect after 3 seconds
+    </script>
+</body>
+
+</html>

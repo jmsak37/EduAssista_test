@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>On Hold Popup</title>
+  <style>
+    /* Full-screen overlay modal that covers the entire page */
+    #holdModal {
+      display: none; /* Hidden by default */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.9);
+      z-index: 10000;
+      pointer-events: all;
+    }
+    /* Modal content styling */
+    #holdModalContent {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 8px;
+      text-align: center;
+      max-width: 400px;
+    }
+    #holdModalContent p {
+      font-size: 18px;
+      color: #333;
+      margin: 0 0 10px;
+    }
+    #holdModalContent a {
+      color: blue;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <!-- Your regular page content goes here -->
+
+  <!-- On-Hold Modal Popup -->
+  <div id="holdModal">
+    <div id="holdModalContent">
+      <p>Your account is on hold.</p>
+      <p>Please contact support at <a href="mailto:jmsak37@gmail.com">jmsak37@gmail.com</a></p>
+    </div>
+  </div>
+
+  <script>
+    // ===== Cookie Helper Functions =====
+    function setCookie(name, value, days) {
+      const d = new Date();
+      d.setTime(d.getTime() + (days*24*60*60*1000));
+      const expires = "expires=" + d.toUTCString();
+      document.cookie = name + "=" + value + ";" + expires + ";path=/";
+    }
+    function getCookie(name) {
+      const cname = name + "=";
+      const decodedCookie = decodeURIComponent(document.cookie);
+      const ca = decodedCookie.split(';');
+      for (let i = 0; i < ca.length; i++) {
+        let c = ca[i].trim();
+        if (c.indexOf(cname) === 0) {
+          return c.substring(cname.length, c.length);
+        }
+      }
+      return "";
+    }
+    function deleteCookie(name) {
+      document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    }
+
+    // ===== Modal Popup Functions =====
+    function showPopup() {
+      document.getElementById('holdModal').style.display = 'block';
+      // Persist the popup via a cookie so it remains across page reloads
+      setCookie("accountRestricted", "true", 1);
+    }
+    function hidePopup() {
+      document.getElementById('holdModal').style.display = 'none';
+      deleteCookie("accountRestricted");
+    }
+
+    // ===== Flag to ensure logout is called only once =====
+    let loggedOut = false;
+
+    // ===== Polling for Restriction Status =====
+    function checkRestrictionStatus() {
+      fetch('on_hold.php')
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'restricted') {
+            // Show the popup if not already visible.
+            if (document.getElementById('holdModal').style.display !== 'block') {
+              showPopup();
+            }
+            // If account is restricted and not yet logged out, call logout.
+            if (!loggedOut) {
+              loggedOut = true;
+              // Call logout.php to remove the session.
+              fetch('logout.php')
+                .then(response => response.json())
+                .then(logoutData => {
+                  // After logging out, redirect to login page with a message.
+                  window.location.href = "login.html?account_on_hold=1";
+                })
+                .catch(error => {
+                  console.error('Error during logout:', error);
+                });
+            }
+          } else if (data.status === 'not_restricted') {
+            // If the account becomes unrestricted, hide the popup.
+            if (document.getElementById('holdModal').style.display === 'block') {
+              hidePopup();
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error checking restriction status:', error);
+        });
+    }
+
+    // ===== Initialization =====
+    window.addEventListener('load', function() {
+      // On page load, if the cookie exists, display the popup.
+      if (getCookie("accountRestricted") === "true") {
+        showPopup();
+      }
+      // Start polling every 0.5 seconds.
+      setInterval(checkRestrictionStatus, 500);
+    });
+  </script>
+</body>
+</html>

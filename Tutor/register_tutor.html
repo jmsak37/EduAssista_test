@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Tutor Registration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        
+        .form-container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-container h1 {
+            text-align: center;
+        }
+        
+        .form-container label {
+            display: block;
+            margin: 5px 0;
+        }
+        
+        .form-container input[type="text"],
+        .form-container input[type="email"],
+        .form-container input[type="password"],
+        .form-container input[type="number"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .form-container input[type="submit"],
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border-radius: 5px;
+            width: 300px;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+        
+        .modal-content h2 {
+            text-align: center;
+            margin-top: 0;
+        }
+        
+        .error {
+            color: red;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+        <h1>Register Tutor</h1>
+
+        <!-- Error Message Display -->
+        <p id="errorMessage" class="error"></p>
+
+        <form id="registrationForm" action="register_tutor.php" method="POST" onsubmit="return validateForm()">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="email_confirm">Confirm Email:</label>
+            <input type="email" id="email_confirm" name="email_confirm" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <label for="password_confirm">Confirm Password:</label>
+            <input type="password" id="password_confirm" name="password_confirm" required>
+
+            <label>Expertise Area:</label>
+            <button type="button" onclick="openModal('expertiseModal')">Select Expertise Area</button>
+
+            <label>Subject:</label>
+            <button type="button" onclick="openModal('subjectModal')">Select Subjects</button>
+
+            <label for="availability">Availability (3-24 hours):</label>
+            <input type="number" id="availability" name="availability" min="3" max="24" required>
+
+            <!-- Hidden inputs to store selected expertise and subjects -->
+            <input type="hidden" id="expertise" name="expertise">
+            <input type="hidden" id="subjects" name="subjects">
+
+            <input type="submit" value="Register">
+        </form>
+    </div>
+
+    <!-- Expertise Modal -->
+    <div id="expertiseModal" class="modal">
+        <div class="modal-content">
+            <h2>Select Expertise Area</h2>
+            <div id="expertise-options"></div>
+            <button class="btn save-btn" onclick="saveExpertise()">OK</button>
+            <button class="btn close-btn" onclick="closeModal('expertiseModal')">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Subject Modal -->
+    <div id="subjectModal" class="modal">
+        <div class="modal-content">
+            <h2>Select Subjects</h2>
+            <div id="subject-options"></div>
+            <button class="btn save-btn" onclick="saveSubjects()">OK</button>
+            <button class="btn close-btn" onclick="closeModal('subjectModal')">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedExpertise = '';
+        let selectedSubjects = [];
+
+        // Display error message based on URL query parameter
+        function displayErrorMessage() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const status = urlParams.get('status');
+            let message = '';
+
+            switch (status) {
+                case 'email_mismatch':
+                    message = "Emails do not match.";
+                    break;
+                case 'password_mismatch':
+                    message = "Passwords do not match.";
+                    break;
+                case 'user_exists':
+                    message = "Username or email already exists.";
+                    break;
+                case 'error_subject_insert':
+                    message = "Failed to assign subjects. Please try again.";
+                    break;
+                case 'error_tutor_insert':
+                    message = "Failed to create tutor profile. Please try again.";
+                    break;
+                case 'error_user_insert':
+                    message = "Failed to create user. Please try again.";
+                    break;
+                case 'error_missing_fields':
+                    message = "Please fill in all required fields.";
+                    break;
+                default:
+                    message = '';
+            }
+            document.getElementById('errorMessage').innerText = message;
+        }
+
+        window.onload = displayErrorMessage;
+
+        // Open and Close Modal functions
+        function openModal(modalId) {
+            if (modalId === 'expertiseModal') loadExpertise();
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Load levels dynamically for Expertise Modal
+        function loadExpertise() {
+            fetch('get_levels.php')
+                .then(response => response.json())
+                .then(data => {
+                    const expertiseOptions = document.getElementById('expertise-options');
+                    expertiseOptions.innerHTML = data.map(level => `<label><input type="radio" name="expertise_option" value="${level}">${level}</label><br>`).join('');
+                });
+        }
+
+        // Save selected expertise area and update hidden field
+        function saveExpertise() {
+            const selectedExpertiseElement = document.querySelector('#expertiseModal input[type="radio"]:checked');
+            if (selectedExpertiseElement) {
+                selectedExpertise = selectedExpertiseElement.value;
+                document.getElementById('expertise').value = selectedExpertise;
+                loadSubjects(selectedExpertise);
+
+                // Ensure the "Select Subjects" button exists before enabling it
+                const selectSubjectsBtn = document.querySelector('[onclick="openModal(\'subjectModal\')"]');
+                if (selectSubjectsBtn) {
+                    selectSubjectsBtn.removeAttribute('disabled');
+                }
+
+                // Close the expertise modal after selection
+                document.getElementById('expertiseModal').style.display = 'none';
+            } else {
+                alert("Please select an expertise area.");
+            }
+        }
+
+
+
+        // Load subjects based on selected level
+        function loadSubjects(selectedLevel) {
+            fetch('get_subjects.php?level=' + encodeURIComponent(selectedLevel))
+                .then(response => response.json())
+                .then(data => {
+                    const subjectOptions = document.getElementById('subject-options');
+                    subjectOptions.innerHTML = data.map(subject => `<label><input type="checkbox" name="subject_option" value="${subject}">${subject}</label><br>`).join('');
+                });
+        }
+
+        // Save selected subjects and update hidden field
+        function saveSubjects() {
+            const subjectChecked = [...document.querySelectorAll('#subjectModal input[type="checkbox"]:checked')];
+            selectedSubjects = subjectChecked.map(cb => cb.value);
+            document.getElementById('subjects').value = selectedSubjects.join(',');
+            closeModal('subjectModal');
+        }
+
+        // Form validation to ensure level and subject are selected
+        function validateForm() {
+            const email = document.getElementById('email').value;
+            const emailConfirm = document.getElementById('email_confirm').value;
+            const password = document.getElementById('password').value;
+            const passwordConfirm = document.getElementById('password_confirm').value;
+
+            if (!selectedExpertise) {
+                alert('Please select an expertise area.');
+                return false;
+            }
+
+            if (selectedSubjects.length === 0) {
+                alert('Please select at least one subject.');
+                return false;
+            }
+
+            if (email !== emailConfirm) {
+                alert("Emails do not match.");
+                return false;
+            }
+
+            if (password !== passwordConfirm) {
+                alert("Passwords do not match.");
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+</body>
+
+</html>

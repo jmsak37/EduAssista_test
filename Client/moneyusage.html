@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Money Usage</title>
+    <style>
+        /* Global Styles */
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        /* Table Styles */
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        thead {
+            background-color: #007BFF;
+            color: #fff;
+        }
+        
+        th,
+        td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Money Usage</h1>
+        <table id="ordersTable">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Tutor ID</th>
+                    <th>Subject</th>
+                    <th>Name</th>
+                    <th>Deadline</th>
+                    <th>Price Deducted</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Orders will be injected here -->
+            </tbody>
+        </table>
+    </div>
+    <script>
+        // Fetch orders from moneyusage.php
+        fetch('moneyusage.php')
+            .then(response => {
+                // If moneyusage.php did a header redirect, change window location
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    // If an error is returned, redirect to login page.
+                    window.location.href = "../login.html";
+                    return;
+                }
+                const tbody = document.querySelector("#ordersTable tbody");
+                if (data.orders && data.orders.length > 0) {
+                    data.orders.forEach(order => {
+                        const tr = document.createElement("tr");
+                        // Order ID
+                        const tdOrder = document.createElement("td");
+                        tdOrder.textContent = order.order_id;
+                        tr.appendChild(tdOrder);
+                        // Tutor ID
+                        const tdTutor = document.createElement("td");
+                        tdTutor.textContent = order.tutor_id;
+                        tr.appendChild(tdTutor);
+                        // Subject
+                        const tdSubject = document.createElement("td");
+                        tdSubject.textContent = order.subject;
+                        tr.appendChild(tdSubject);
+                        // Name as a clickable link to seetheorder.html?order_id=...
+                        const tdName = document.createElement("td");
+                        const link = document.createElement("a");
+                        link.href = "seetheorder.html?order_id=" + encodeURIComponent(order.order_id);
+                        link.textContent = order.name;
+                        tdName.appendChild(link);
+                        tr.appendChild(tdName);
+                        // Deadline
+                        const tdDeadline = document.createElement("td");
+                        tdDeadline.textContent = order.deadline;
+                        tr.appendChild(tdDeadline);
+                        // Price with minus sign
+                        const tdPrice = document.createElement("td");
+                        tdPrice.textContent = "-" + order.price;
+                        tr.appendChild(tdPrice);
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    const tr = document.createElement("tr");
+                    const td = document.createElement("td");
+                    td.colSpan = 6;
+                    td.textContent = "No orders found.";
+                    tr.appendChild(td);
+                    tbody.appendChild(tr);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                window.location.href = "../login.html";
+            });
+    </script>
+</body>
+
+</html>

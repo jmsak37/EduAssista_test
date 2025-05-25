@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - EduAssista</title>
+    <link rel="stylesheet" href="styla.css">
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Fetch the username from index.php using the getUsername action.
+            fetch("index.php?action=getUsername", {
+                    credentials: "include"
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        // If not authorized, show error and redirect to logout.
+                        document.getElementById("welcomeUser").textContent = "Not authorized";
+                        setTimeout(function() {
+                            window.location.href = "../../logout.php";
+                        }, 3000);
+                    } else if (data.redirect) {
+                        // If no AdminRuleID, redirect to dashboard.html.
+                        window.location.href = data.redirect;
+                    } else if (data.userName) {
+                        document.getElementById("welcomeUser").textContent = data.userName;
+                    }
+                })
+                .catch(err => {
+                    console.error("Error fetching username:", err);
+                });
+
+            // Load the batons (grid of database table buttons) from databasetable.html.
+            fetch("databasetable.html")
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById("batonContainer").innerHTML = html;
+                })
+                .catch(err => {
+                    console.error("Error loading batons:", err);
+                });
+        });
+
+        function autoLogout() {
+            window.location.href = "../../logout.php";
+        }
+
+
+
+        //checking whether the user is in session
+        function checkSession() {
+    fetch("../../check_session.php", { credentials: "include" })
+      .then(response => response.json())
+      .then(data => {
+        if (!data.inSession) {
+          window.location.href = "../../login.html";
+        }
+      })
+      .catch(error => {
+        console.error("Error checking session:", error);
+        // On error, redirect to login as a safety measure.
+        window.location.href = "../../login.html";
+      });
+  }
+  // Check every second (1000 milliseconds)
+  setInterval(checkSession, 1000);
+
+  // Also, if needed, you can enforce a 48-hour auto-logout (optional):
+  setTimeout(function(){
+      window.location.href = "../../logout.php";
+  }, 172800000);
+
+    </script>
+</head>
+
+<body>
+    <!-- Header Section -->
+    <header>
+        <h1>Admin Dashboard</h1>
+        <p>Welcome, <span id="welcomeUser">!</span></p>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav>
+        <div class="nav-left">
+            <a href="../dashboard.html">Dashboard</a>
+            <a href="../registera.html" class="button">Add User</a>
+            <a href="../adduserbalance.html" class="button">Update User Balance</a>
+        </div>
+        <div class="nav-right">
+            <a href="../../logout.php" class="button" onclick="autoLogout();">Logout</a>
+        </div>
+    </nav>
+
+    <!-- Main Content: Baton Container -->
+    <div class="content">
+        <div id="batonContainer" class="grid-container">
+            <!-- The batons will be loaded here from databasetable.html -->
+        </div>
+    </div>
+
+    <!-- Footer Section -->
+    <div class="footer">
+        <p>2024 © EduAssista. All rights reserved. Contact us at
+            <a href="mailto:jmsak37@gmail.com">jmsak37@gmail.com</a> or call +25469089734.
+        </p>
+    </div>
+</body>
+
+</html>

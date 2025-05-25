@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>View Blogs - EduAssista</title>
+    <link rel="stylesheet" href="styla.css">
+    <style>
+        /* Basic layout and typography */
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #1dbab4;
+        }
+        /* Full Blog Details Section */
+        
+        #fullBlogSection {
+            margin: 40px auto;
+            max-width: 800px;
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .blogEntry {
+            margin-bottom: 20px;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        
+        .blogEntry:last-child {
+            border-bottom: none;
+        }
+        
+        .blogMeta {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        /* Comments Section */
+        
+        .commentsSection {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #ccc;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        
+        .commentsSection h3 {
+            margin: 10px 0;
+            font-size: 1.1em;
+            color: #00796b;
+        }
+        
+        .commentForm textarea {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            margin-bottom: 5px;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        
+        .comment {
+            margin-bottom: 10px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+            position: relative;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        
+        .comment p {
+            margin: 0;
+        }
+        
+        .comment .commentMeta {
+            font-size: 0.8em;
+            color: #777;
+            margin-top: 3px;
+        }
+        
+        .reply {
+            margin-left: 20px;
+            padding: 5px;
+            border-left: 2px solid #00796b;
+            margin-top: 5px;
+            background: #f1f1f1;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        
+        .reply p {
+            margin: 0;
+        }
+        
+        .reply .commentMeta {
+            font-size: 0.8em;
+            color: #777;
+            margin-top: 3px;
+        }
+        
+        .replySection textarea {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            resize: vertical;
+            margin-bottom: 5px;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        /* PDF Viewer Styling */
+        
+        .pdfViewer {
+            width: 800px;
+            height: 600px;
+            border: none;
+        }
+        /* Modal Notification Styling */
+        
+        #notificationModal {
+            display: none;
+            position: fixed;
+            z-index: 1100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        #notificationModal .modal-content {
+            background-color: #dff0d8;
+            border: 1px solid #d0e9c6;
+            color: #3c763d;
+            margin: 15% auto;
+            padding: 20px;
+            width: 300px;
+            border-radius: 5px;
+            text-align: center;
+            position: relative;
+        }
+        
+        #notificationModal .modal-content .close {
+            color: #3c763d;
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        /* Guest Details Modal Styling */
+        
+        #guestModal {
+            display: none;
+            position: fixed;
+            z-index: 1200;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        #guestModal .modal-content {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            color: #333;
+            margin: 15% auto;
+            padding: 20px;
+            width: 350px;
+            border-radius: 5px;
+            text-align: center;
+            position: relative;
+        }
+        
+        #guestModal .modal-content h3 {
+            margin-top: 0;
+        }
+        
+        #guestModal .modal-content input {
+            width: 90%;
+            padding: 6px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        #guestModal .modal-content button {
+            background-color: #00796b;
+            color: #fff;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        #guestModal .modal-content button:hover {
+            background-color: #004d40;
+        }
+        
+        #guestModal .modal-content .error {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+    </style>
+    <script>
+        // Disable right-click on PDF viewer elements.
+        document.addEventListener("contextmenu", function(e) {
+            if (e.target.tagName === "IFRAME" || e.target.tagName === "EMBED") {
+                e.preventDefault();
+            }
+        });
+
+        let pendingActionType = ""; // "comment" or "reply"
+        let pendingCommentParams = null;
+        let pendingReplyParams = null;
+
+        function loadBlogs() {
+            fetch("Admin/admin001a/blogs.php?action=list")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const fullSection = document.getElementById("fullBlogSection");
+                        fullSection.innerHTML = "";
+                        data.blogs.forEach(blog => {
+                            let div = document.createElement("div");
+                            div.className = "blogEntry";
+                            div.id = "blog-" + blog.BlogID;
+                            let processedContent = blog.BlogContent.replace(/\[video\](.*?)\[\/video\]/gi, function(match, p1) {
+                                return '<video controls width="600"><source src="' + p1 + '" type="video/mp4">Your browser does not support the video tag.</video>';
+                            });
+                            div.innerHTML = `<h2>${blog.BlogTitle}</h2>
+                <p class="blogMeta">Posted on ${blog.date} by author ${blog.AuthorName ? blog.AuthorName : "User" + blog.AuthorID}</p>
+                <div class="blogContent">${processedContent}</div>`;
+                            if (blog.attarchement) {
+                                let attArray = blog.attarchement.split(",");
+                                attArray.forEach(att => {
+                                    let ext = att.split('.').pop().toLowerCase();
+                                    if (ext === "pdf") {
+                                        div.innerHTML += `<iframe class="pdfViewer" src="Admin/admin001a/pdf_viewer.html?file=blogs/${att}" oncontextmenu="return false;"></iframe>`;
+                                    } else {
+                                        div.innerHTML += `<a href="Admin/admin001a/blogs/${att}" target="_blank">${att}</a>`;
+                                    }
+                                });
+                            }
+                            div.innerHTML +=
+                                `<div class="commentsSection" data-blogid="${blog.BlogID}">
+                  <h3>Comments</h3>
+                  <div class="commentForm">
+                    <textarea placeholder="Write a comment..." class="commentText" style="width:100%;"></textarea>
+                    <button class="button submitCommentBtn" data-blogid="${blog.BlogID}">Comment</button>
+                  </div>
+                  <div class="commentsList"></div>
+                </div>`;
+                            fullSection.appendChild(div);
+                            let container = div.querySelector(".commentsList");
+                            loadComments(blog.BlogID, container);
+                        });
+                        attachCommentActions();
+                    } else {
+                        showNotification("Failed to load blogs: " + data.message);
+                    }
+                })
+                .catch(error => console.error("Error loading blogs:", error));
+        }
+
+        function attachCommentActions() {
+            document.querySelectorAll(".submitCommentBtn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    let blogID = this.getAttribute("data-blogid");
+                    let commentForm = this.parentElement;
+                    let commentText = commentForm.querySelector(".commentText").value.trim();
+                    let params = {
+                        blogID: blogID,
+                        commentMessage: commentText
+                    };
+                    pendingActionType = "comment";
+                    pendingCommentParams = params;
+                    openGuestModal();
+                });
+            });
+        }
+
+        function loadComments(blogID, container) {
+            fetch("Admin/admin001a/comment.php?action=listComments&blogID=" + blogID)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        container.innerHTML = "";
+                        if (data.comments.length > 0) {
+                            data.comments.forEach(comment => {
+                                let commenter = "";
+                                if (comment.UserID == 0) {
+                                    // Guest comment: show guest name from FirstName/LastName
+                                    commenter = comment.FirstName ? (comment.FirstName + " " + (comment.LastName || "")) : "Guest";
+                                } else {
+                                    commenter = comment.UserName ? comment.UserName : ("User" + comment.UserID);
+                                }
+                                let commentDiv = document.createElement("div");
+                                commentDiv.className = "comment";
+                                let innerHTML = `<p>${comment.CommentMessage}</p>
+                  <div class="commentMeta">Commented by ${commenter} on ${comment.CreatedAt}</div>
+                  <button class="button replyBtn">Reply</button>`;
+                                if (comment.replies && comment.replies.length > 0) {
+                                    innerHTML += `<div class="replyContainer">`;
+                                    comment.replies.forEach(reply => {
+                                        let repUser = "";
+                                        if (reply.UserID_replied == 0) {
+                                            repUser = reply.FirstName ? (reply.FirstName + " " + (reply.LastName || "")) : "Guest";
+                                        } else {
+                                            repUser = reply.UserName_replied ? reply.UserName_replied : ("User" + reply.UserID_replied);
+                                        }
+                                        innerHTML += `<div class="reply">
+                      <p>${reply.ReplyMessage}</p>
+                      <div class="commentMeta">Replied by ${repUser} on ${reply.CreatedAt}</div>
+                    </div>`;
+                                    });
+                                    innerHTML += `</div>`;
+                                }
+                                innerHTML += `<div class="replySection" style="display:none;">
+                  <textarea placeholder="Write a reply..." class="replyText" style="width:100%;"></textarea>
+                  <button class="button submitReplyBtn" data-commentid="${comment.CommentID}">Reply</button>
+                </div>`;
+                                commentDiv.innerHTML = innerHTML;
+                                container.appendChild(commentDiv);
+                            });
+                        }
+                        attachDynamicCommentActions(container);
+                    } else {
+                        container.innerHTML = `<p style="color:red;">Error loading comments: ${data.message}</p>`;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error loading comments:", error);
+                    container.innerHTML = `<p style="color:red;">Error loading comments.</p>`;
+                });
+        }
+
+        function attachDynamicCommentActions(container) {
+            container.querySelectorAll(".replyBtn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    let replySection = this.parentElement.querySelector(".replySection");
+                    replySection.style.display = (replySection.style.display === "none") ? "block" : "none";
+                });
+            });
+            container.querySelectorAll(".submitReplyBtn").forEach(btn => {
+                btn.addEventListener("click", function() {
+                    let commentID = this.getAttribute("data-commentid");
+                    let replyText = this.parentElement.querySelector(".replyText").value.trim();
+                    let params = {
+                        commentID: commentID,
+                        replyMessage: replyText
+                    };
+                    pendingActionType = "reply";
+                    pendingReplyParams = params;
+                    openGuestModal();
+                });
+            });
+        }
+
+        function showNotification(message) {
+            document.getElementById("notificationMessage").textContent = message;
+            document.getElementById("notificationModal").style.display = "block";
+            setTimeout(() => {
+                document.getElementById("notificationModal").style.display = "none";
+            }, 3000);
+        }
+
+        // Guest Modal functions.
+        function openGuestModal() {
+            let modal = document.getElementById("guestModal");
+            if (pendingActionType === "comment") {
+                modal.querySelector("button").innerText = "Submit Comment";
+            } else if (pendingActionType === "reply") {
+                modal.querySelector("button").innerText = "Submit Reply";
+            }
+            modal.style.display = "block";
+        }
+
+        function closeGuestModal() {
+            let modal = document.getElementById("guestModal");
+            modal.style.display = "none";
+            modal.querySelector("#guestFirst").value = "";
+            modal.querySelector("#guestMiddle").value = "";
+            modal.querySelector("#guestLast").value = "";
+            modal.querySelector("#guestEmail").value = "";
+            modal.querySelector("#guestModalError").innerText = "";
+        }
+
+        function submitGuestDetails() {
+            let guestFirst = document.getElementById("guestFirst").value.trim();
+            let guestMiddle = document.getElementById("guestMiddle").value.trim();
+            let guestLast = document.getElementById("guestLast").value.trim();
+            let guestEmail = document.getElementById("guestEmail").value.trim();
+
+            if (guestFirst === "" || guestLast === "" || guestEmail === "") {
+                showGuestModalError("First name, last name and a valid email are required.");
+                return;
+            }
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(guestEmail)) {
+                showGuestModalError("Please enter a valid email address.");
+                return;
+            }
+
+            if (pendingActionType === "comment" && pendingCommentParams) {
+                pendingCommentParams.guestFirst = guestFirst;
+                pendingCommentParams.guestMiddle = guestMiddle;
+                pendingCommentParams.guestLast = guestLast;
+                pendingCommentParams.guestEmail = guestEmail;
+                fetch("Admin/admin001a/comment.php?action=addComment", {
+                        method: "POST",
+                        body: new URLSearchParams(pendingCommentParams)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            let container = document.querySelector(`.commentsSection[data-blogid="${pendingCommentParams.blogID}"] .commentsList`);
+                            loadComments(pendingCommentParams.blogID, container);
+                            showNotification("Thank you for commenting!");
+                            setTimeout(closeGuestModal, 1500);
+                        } else {
+                            showGuestModalError("Error: " + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error adding comment:", error);
+                        showGuestModalError("Error adding comment.");
+                    });
+            } else if (pendingActionType === "reply" && pendingReplyParams) {
+                pendingReplyParams.guestFirst = guestFirst;
+                pendingReplyParams.guestMiddle = guestMiddle;
+                pendingReplyParams.guestLast = guestLast;
+                pendingReplyParams.guestEmail = guestEmail;
+                fetch("Admin/admin001a/comment.php?action=addReply", {
+                        method: "POST",
+                        body: new URLSearchParams(pendingReplyParams)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Reload comments for the blog entry.
+                            let blogID = document.querySelector(".blogEntry").id.split("-")[1];
+                            let container = document.querySelector(`.commentsSection[data-blogid="${blogID}"] .commentsList`);
+                            loadComments(blogID, container);
+                            showNotification("Thank you for replying!");
+                            setTimeout(closeGuestModal, 1500);
+                        } else {
+                            showGuestModalError("Error: " + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error adding reply:", error);
+                        showGuestModalError("Error adding reply.");
+                    });
+            }
+        }
+
+        function showGuestModalError(msg) {
+            document.getElementById("guestModalError").innerText = msg;
+        }
+
+        window.onload = loadBlogs;
+    </script>
+</head>
+
+<body oncontextmenu="return false;">
+    <h1>View Blogs</h1>
+    <!-- Full Blog Details Section -->
+    <div id="fullBlogSection"></div>
+
+    <!-- Notification Modal -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content">
+            <span id="notificationClose" class="close">&times;</span>
+            <p id="notificationMessage"></p>
+        </div>
+    </div>
+
+    <!-- Guest Details Modal -->
+    <div id="guestModal" class="modal">
+        <div class="modal-content">
+            <h3>Enter Guest Details</h3>
+            <input type="text" id="guestFirst" placeholder="First Name" required>
+            <input type="text" id="guestMiddle" placeholder="Middle Name (Optional)">
+            <input type="text" id="guestLast" placeholder="Last Name" required>
+            <input type="email" id="guestEmail" placeholder="Valid Email" required>
+            <div id="guestModalError" class="error"></div>
+            <button onclick="submitGuestDetails()">Submit</button>
+        </div>
+    </div>
+</body>
+
+</html>

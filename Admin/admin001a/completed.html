@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Completed Orders Management</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .notification {
+      background-color: #dff0d8;
+      color: #3c763d;
+      padding: 10px;
+      border: 1px solid #d6e9c6;
+      margin-bottom: 20px;
+      display: none;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    button {
+      padding: 5px 10px;
+      margin: 2px;
+      cursor: pointer;
+    }
+    a {
+      color: blue;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    /* Modal styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 5px;
+      position: relative;
+      box-sizing: border-box;
+    }
+    /* Smaller update modal with increased bottom padding */
+    #updateModal .modal-content {
+      width: 350px;
+      max-height: 80%;
+      overflow-y: auto;
+      padding-bottom: 100px; /* Increased bottom padding */
+    }
+    /* Delete confirmation modal */
+    #deleteModal .modal-content {
+      width: 300px;
+      padding: 20px;
+      text-align: center;
+    }
+    .close {
+      position: absolute;
+      right: 10px;
+      top: 5px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    input[type="text"],
+    input[type="number"],
+    input[type="datetime-local"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 8px;
+      margin: 5px 0 15px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    input[type="submit"],
+    button.modal-btn {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    input[type="submit"]:hover,
+    button.modal-btn:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>Completed Orders Management</h1>
+  <div id="notification" class="notification"></div>
+  <table id="completedTable">
+    <thead>
+      <tr>
+        <th>Order ID</th>
+        <th>Client ID</th>
+        <th>Tutor ID</th>
+        <th>Subject</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Instructions</th>
+        <th>Deadline</th>
+        <th>Price</th>
+        <th>Pages</th>
+        <th>Status</th>
+        <th>Created At</th>
+        <th>Updated At</th>
+        <th>Answer Comment</th>
+        <th>Explanation Comment</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows populated dynamically -->
+    </tbody>
+  </table>
+
+  <!-- Update Modal for editing a completed order -->
+  <div id="updateModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeUpdateModal()">&times;</span>
+      <h3>Update Completed Order</h3>
+      <form id="updateForm">
+        <input type="hidden" id="update_order_id" name="order_id">
+        <label for="update_tutor">Tutor:</label>
+        <select id="update_tutor" name="tutor_id">
+          <!-- Tutor options loaded dynamically -->
+        </select>
+        <label for="update_deadline">Deadline:</label>
+        <input type="datetime-local" id="update_deadline" name="deadline">
+        <label for="update_price">Price:</label>
+        <input type="number" id="update_price" name="price" step="0.01">
+        <label for="update_pages">Pages:</label>
+        <input type="number" id="update_pages" name="number_of_pages">
+        <label for="update_status">Status:</label>
+        <input type="text" id="update_status" name="status">
+        <label for="update_answer_comment">Answer Comment:</label>
+        <textarea id="update_answer_comment" name="answer_comments"></textarea>
+        <label for="update_explanation_comment">Explanation Comment:</label>
+        <textarea id="update_explanation_comment" name="explanation_comments"></textarea>
+        <input type="submit" value="Update Order">
+      </form>
+    </div>
+  </div>
+
+  <!-- Document Modal for previewing documents -->
+  <div id="documentModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeDocumentModal()">&times;</span>
+      <h3>Select Document to View</h3>
+      <div id="docOptions">
+        <!-- Options always displayed -->
+        <button onclick="viewDocument('uploaded')">Document Upload</button><br>
+        <button onclick="viewDocument('completed')">Completed Work</button><br>
+        <button onclick="viewDocument('answers')">Answer Files</button><br>
+        <button onclick="viewDocument('explanation')">Explanation Files</button><br>
+        <button onclick="viewDocument('all')">View All</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeDeleteModal()">&times;</span>
+      <p>Are you sure you want to delete this order?</p>
+      <button class="modal-btn" onclick="confirmDelete()">Yes</button>
+      <button class="modal-btn" onclick="closeDeleteModal()">No</button>
+    </div>
+  </div>
+
+  <script>
+    let completedOrders = [];
+    let selectedOrder = null; // holds the currently selected order for modals
+    let deleteOrderId = null; // holds the order id to be deleted
+
+    function showNotification(message) {
+      const notificationDiv = document.getElementById('notification');
+      notificationDiv.textContent = message;
+      notificationDiv.style.display = 'block';
+      setTimeout(() => { notificationDiv.style.display = 'none'; }, 3000);
+    }
+
+    function loadCompleted() {
+      fetch('completed.php?action=list')
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            completedOrders = data.orders;
+            populateTable();
+          } else {
+            showNotification("Error: " + data.message);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          showNotification("Error loading completed orders");
+        });
+    }
+
+    function populateTable() {
+      const tbody = document.querySelector('#completedTable tbody');
+      tbody.innerHTML = "";
+      completedOrders.forEach(order => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${order.order_id}</td>
+          <td>${order.client_id}</td>
+          <td>${order.tutor_id || ''}</td>
+          <td>${order.subject}</td>
+          <td><a onclick="openDocumentModal('${order.order_id}', '${encodeURIComponent(order.name)}', '${encodeURIComponent(order.document_upload_link)}', '${encodeURIComponent(order.completed_work_link)}', '${encodeURIComponent(order.answer_files)}', '${encodeURIComponent(order.explanation_files)}')">${order.name}</a></td>
+          <td>${order.description}</td>
+          <td>${order.instructions}</td>
+          <td>${order.deadline}</td>
+          <td>${order.price}</td>
+          <td>${order.number_of_pages}</td>
+          <td>${order.status}</td>
+          <td>${order.created_at}</td>
+          <td>${order.updated_at}</td>
+          <td>${order.answer_comments || ''}</td>
+          <td>${order.explanation_comments || ''}</td>
+          <td>
+            <button onclick="openUpdateModal('${order.order_id}')">Edit</button>
+            <button onclick="deleteOrder('${order.order_id}')">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openUpdateModal(order_id) {
+      selectedOrder = completedOrders.find(o => o.order_id == order_id);
+      if (!selectedOrder) return;
+      document.getElementById('update_order_id').value = selectedOrder.order_id;
+      document.getElementById('update_deadline').value = selectedOrder.deadline ? selectedOrder.deadline.substring(0, 16) : "";
+      document.getElementById('update_price').value = selectedOrder.price || "";
+      document.getElementById('update_pages').value = selectedOrder.number_of_pages || "";
+      document.getElementById('update_status').value = selectedOrder.status || "";
+      document.getElementById('update_answer_comment').value = selectedOrder.answer_comments || "";
+      document.getElementById('update_explanation_comment').value = selectedOrder.explanation_comments || "";
+      loadTutors();
+      document.getElementById('updateModal').style.display = 'block';
+    }
+
+    function closeUpdateModal() {
+      document.getElementById('updateModal').style.display = 'none';
+    }
+
+    function loadTutors() {
+      fetch('completed.php?action=listTutors')
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const select = document.getElementById('update_tutor');
+            select.innerHTML = '<option value="">Select Tutor</option>';
+            data.tutors.forEach(tutor => {
+              select.innerHTML += `<option value="${tutor.UserID}">${tutor.UserName}</option>`;
+            });
+            if (selectedOrder && selectedOrder.tutor_id) {
+              select.value = selectedOrder.tutor_id;
+            }
+          } else {
+            showNotification("Error loading tutors: " + data.message);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          showNotification("Error loading tutors");
+        });
+    }
+
+    document.getElementById('updateForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const formData = new FormData(document.getElementById('updateForm'));
+      fetch('completed.php?action=update', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showNotification("Order updated successfully!");
+          closeUpdateModal();
+          loadCompleted();
+        } else {
+          showNotification("Error: " + data.message);
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        showNotification("Error updating order");
+      });
+    });
+
+    // Custom Delete Confirmation: open modal instead of native confirm.
+    function deleteOrder(order_id) {
+      deleteOrderId = order_id;
+      document.getElementById('deleteModal').style.display = 'block';
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').style.display = 'none';
+      deleteOrderId = null;
+    }
+
+    function confirmDelete() {
+      fetch('completed.php?action=delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `order_id=${deleteOrderId}`
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showNotification("Order deleted successfully!");
+          loadCompleted();
+        } else {
+          showNotification("Error: " + data.message);
+        }
+        closeDeleteModal();
+      })
+      .catch(err => {
+        console.error(err);
+        showNotification("Error deleting order");
+        closeDeleteModal();
+      });
+    }
+
+    // Document Modal functions
+    function openDocumentModal(order_id, name, document_upload_link, completed_work_link, answer_files, explanation_files) {
+      selectedOrder = {
+        order_id: order_id,
+        name: decodeURIComponent(name),
+        document_upload_link: decodeURIComponent(document_upload_link || ""),
+        completed_work_link: decodeURIComponent(completed_work_link || ""),
+        answer_files: decodeURIComponent(answer_files || ""),
+        explanation_files: decodeURIComponent(explanation_files || "")
+      };
+      const modal = document.getElementById('documentModal');
+      // Always display all five buttons.
+      modal.style.display = 'block';
+    }
+
+    function closeDocumentModal() {
+      document.getElementById('documentModal').style.display = 'none';
+    }
+
+    function viewDocument(type) {
+      // Redirect with type and order_id.
+      window.location.href = `preview_completed_document.php?type=${type}&order_id=${selectedOrder.order_id}`;
+      closeDocumentModal();
+    }
+
+    window.onclick = function(event) {
+      const updateModal = document.getElementById('updateModal');
+      const documentModal = document.getElementById('documentModal');
+      const deleteModal = document.getElementById('deleteModal');
+      if (event.target == updateModal) {
+        updateModal.style.display = 'none';
+      }
+      if (event.target == documentModal) {
+        documentModal.style.display = 'none';
+      }
+      if (event.target == deleteModal) {
+        deleteModal.style.display = 'none';
+      }
+    };
+
+    window.onload = loadCompleted;
+  </script>
+</body>
+</html>

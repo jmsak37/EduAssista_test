@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tutor Profile</title>
+    <!-- Load external CSS files -->
+    <link rel="stylesheet" href="style3.css">
+    <link rel="stylesheet" href="style4.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Additional styling for the profile page */
+        
+        .profile-container {
+            width: 80%;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: left;
+            min-height: 80vh;
+        }
+        
+        .profile-header {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .profile-pic {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin-right: 20px;
+            object-fit: cover;
+            border: 2px solid #007bff;
+        }
+        
+        .profile-info h2 {
+            margin: 0;
+            color: #333;
+        }
+        
+        .profile-info p {
+            margin: 5px 0;
+            color: #555;
+        }
+        
+        .profile-section {
+            margin-bottom: 20px;
+        }
+        
+        .profile-section h3 {
+            border-bottom: 1px solid #007bff;
+            padding-bottom: 5px;
+            color: #007bff;
+        }
+        
+        .profile-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .profile-table th,
+        .profile-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        
+        .profile-table th {
+            background-color: #007bff;
+            color: #fff;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Load navigation.
+            fetch('navigation.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("navigation").innerHTML = data;
+                })
+                .catch(error => console.error("Error loading navigation:", error));
+
+            // Fetch profile data (including subjects, rating percentage, and tutor details).
+            fetch('profile.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById("profileContainer").innerHTML = "<p>Something failed: " + data.error + "</p>";
+                        return;
+                    }
+
+                    // Build subject expertise list.
+                    let subjectsHTML = '';
+                    if (data.subjects && data.subjects.length > 0) {
+                        subjectsHTML = '<ul>';
+                        data.subjects.forEach(subject => {
+                            subjectsHTML += `<li>${subject.Subject} (ID: ${subject.SubjectID}) - ${subject.SubjectName}</li>`;
+                        });
+                        subjectsHTML += '</ul>';
+                    } else {
+                        subjectsHTML = '<p>No subjects found.</p>';
+                    }
+
+                    // Build ratings display (only percentage).
+                    let ratingPercentage = (typeof data.rating_percentage !== "undefined") ? data.rating_percentage : 100;
+                    let ratingsHTML = `<p>Rating: ${ratingPercentage}%</p>`;
+
+                    // Build the profile card with an editable Expertise Area.
+                    let profileHTML = `
+            <div class="profile-header">
+              <img src="default_profile.png" alt="Profile Picture" class="profile-pic">
+              <div class="profile-info">
+                <h2>${data.UserName}</h2>
+                <p>Email: ${data.Email}</p>
+                <p>Member Since: ${new Date(data.CreatedAt).toLocaleDateString()}</p>
+                <p>Last Updated: ${new Date(data.UpdatedAt).toLocaleDateString()}</p>
+              </div>
+            </div>
+            <div class="profile-section">
+              <h3>Expertise Area</h3>
+              <p id="expertiseText">${data.ExpertiseArea ? data.ExpertiseArea : 'No expertise area provided.'}</p>
+              <button id="editExpertiseBtn">Edit Expertise Area</button>
+              <div id="expertiseEdit" style="display:none;">
+                <textarea id="expertiseTextarea" rows="4" cols="50">${data.ExpertiseArea ? data.ExpertiseArea : ''}</textarea>
+                <br>
+                <button id="saveExpertiseBtn">Save</button>
+                <button id="cancelExpertiseBtn">Cancel</button>
+              </div>
+            </div>
+            <div class="profile-section">
+              <h3>Subject Expertise</h3>
+              ${subjectsHTML}
+            </div>
+            <div class="profile-section">
+              <h3>Rating</h3>
+              ${ratingsHTML}
+            </div>
+            <div class="profile-section">
+              <h3>Availability</h3>
+              <p>${data.Availability ? data.Availability : 'Not specified.'}</p>
+            </div>
+            <div class="profile-section">
+              <h3>Pricing</h3>
+              <p>$30 per hour. Special packages available.</p>
+            </div>
+            <div class="profile-section">
+              <h3>Contact Information</h3>
+              <p>Email: ${data.Email}</p>
+            </div>
+          `;
+                    document.getElementById("profileContainer").innerHTML = profileHTML;
+
+                    // Enable editing of the Expertise Area.
+                    document.getElementById("editExpertiseBtn").addEventListener("click", function() {
+                        document.getElementById("expertiseText").style.display = "none";
+                        document.getElementById("editExpertiseBtn").style.display = "none";
+                        document.getElementById("expertiseEdit").style.display = "block";
+                    });
+                    document.getElementById("cancelExpertiseBtn").addEventListener("click", function() {
+                        document.getElementById("expertiseEdit").style.display = "none";
+                        document.getElementById("expertiseText").style.display = "block";
+                        document.getElementById("editExpertiseBtn").style.display = "inline-block";
+                    });
+                    document.getElementById("saveExpertiseBtn").addEventListener("click", function() {
+                        let newExpertise = document.getElementById("expertiseTextarea").value;
+                        // Update expertise area via updateProfile.php.
+                        fetch('updateProfile.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    expertise_area: newExpertise
+                                })
+                            })
+                            .then(response => response.json())
+                            .then(updateData => {
+                                if (updateData.success) {
+                                    document.getElementById("expertiseText").innerText = newExpertise;
+                                    alert("Expertise Area updated successfully.");
+                                } else {
+                                    alert("Failed to update Expertise Area: " + updateData.error);
+                                }
+                                document.getElementById("expertiseEdit").style.display = "none";
+                                document.getElementById("expertiseText").style.display = "block";
+                                document.getElementById("editExpertiseBtn").style.display = "inline-block";
+                            })
+                            .catch(error => {
+                                console.error("Error updating Expertise Area:", error);
+                                alert("Error updating Expertise Area: " + error.message);
+                            });
+                    });
+                })
+                .catch(error => {
+                    console.error("Error fetching profile:", error);
+                    document.getElementById("profileContainer").innerHTML = "<p>Something failed: " + error.message + "</p>";
+                });
+        });
+    </script>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <div id="navigation"></div>
+
+    <!-- Profile Content -->
+    <div class="profile-container" id="profileContainer">
+        <!-- Profile details will be loaded here dynamically -->
+    </div>
+</body>
+
+</html>

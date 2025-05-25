@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Add Blog - EduAssista</title>
+    <link rel="stylesheet" href="styla.css">
+    <style>
+        /* Global Styles */
+        
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        h2 {
+            text-align: center;
+            color: #00796b;
+        }
+        
+        .button {
+            background-color: #00796b;
+            color: #fff;
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .button:hover {
+            background-color: #004d40;
+        }
+        
+        #addBlogForm {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        #addBlogForm input[type="text"],
+        #addBlogForm input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        /* Integrated Formatting Toolbar (“Formarting”) */
+        
+        #toolbarContainer {
+            margin-bottom: 10px;
+        }
+        
+        #formattingToolbar {
+            border: 1px solid #ccc;
+            background: #f9f9f9;
+            padding: 5px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .group {
+            margin-bottom: 10px;
+        }
+        
+        .group-header {
+            background-color: #00796b;
+            color: white;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+        }
+        
+        .group-header:hover {
+            background-color: #005f50;
+        }
+        
+        .arrow {
+            transition: transform 0.3s ease;
+        }
+        
+        .group-header.active .arrow {
+            transform: rotate(90deg);
+        }
+        
+        .group-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.4s ease;
+            background: #f1f1f1;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            padding: 0 5px;
+        }
+        
+        .group-content.active {
+            max-height: 500px;
+            padding: 5px;
+        }
+        
+        .group-content button {
+            margin: 3px;
+            padding: 5px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .group-content button:hover {
+            background: #eaeaea;
+        }
+        /* Active formatting button style */
+        
+        .group-content button.active {
+            background-color: #2196F3;
+            color: #fff;
+            border-color: #0D47A1;
+        }
+        
+        .color-palette {
+            margin: 5px 0;
+        }
+        
+        .color-swatch {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin: 2px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+        
+        .color-swatch.active {
+            border: 2px solid #2196F3;
+        }
+        /* Editor Boxes */
+        /* Blog Title Editor: small box */
+        
+        #blogTitleEditor {
+            border: 1px solid #ccc;
+            height: 40px;
+            padding: 5px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background: #fff;
+        }
+        /* Blog Content Editor: large box */
+        
+        #blogContentEditor {
+            border: 1px solid #ccc;
+            min-height: 300px;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background: #fff;
+        }
+        /* Hidden fields */
+        
+        .hiddenField {
+            display: none;
+        }
+        /* Modal Popups */
+        
+        #notificationModal,
+        #tempConfirmModal {
+            display: none;
+            position: fixed;
+            z-index: 1100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        #notificationModal .modal-content,
+        #tempConfirmModal .modal-content {
+            background-color: #dff0d8;
+            border: 1px solid #d0e9c6;
+            color: #3c763d;
+            margin: 15% auto;
+            padding: 20px;
+            width: 300px;
+            border-radius: 5px;
+            text-align: center;
+            position: relative;
+        }
+        
+        #notificationModal .modal-content .close,
+        #tempConfirmModal .modal-content .close {
+            color: #3c763d;
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        #tempConfirmModal .modal-content h3 {
+            margin-top: 0;
+        }
+        
+        #tempConfirmModal .modal-content button {
+            margin: 10px 5px 0;
+        }
+    </style>
+    <script>
+        var currentEditor = null;
+        // Set the active editor when an editor gains focus.
+        function setCurrentEditor(id) {
+            currentEditor = document.getElementById(id);
+        }
+        // Prevent focus loss on formatting button mousedown.
+        function preventFocusLoss(e) {
+            e.preventDefault();
+        }
+        // Execute a formatting command on the current editor.
+        function execCmd(command, value = null) {
+            if (currentEditor) {
+                currentEditor.focus();
+            }
+            document.execCommand(command, false, value);
+        }
+        // Toggle formatting command (e.g., Bold) and update active state.
+        function toggleFormat(command, btn) {
+            preventFocusLoss(event);
+            execCmd(command);
+            if (btn.classList.contains("active")) {
+                btn.classList.remove("active");
+            } else {
+                btn.classList.add("active");
+            }
+        }
+        // For color swatches (font color).
+        function setTextColor(color) {
+            preventFocusLoss(event);
+            execCmd('foreColor', color);
+            let swatches = document.querySelectorAll(".color-palette .color-swatch");
+            swatches.forEach(s => s.classList.remove("active"));
+            event.target.classList.add("active");
+        }
+        // For highlight color.
+        function setHighlight(color) {
+            preventFocusLoss(event);
+            execCmd('hiliteColor', color);
+            let swatches = document.querySelectorAll(".color-palette .color-swatch");
+            swatches.forEach(s => s.classList.remove("active"));
+            event.target.classList.add("active");
+        }
+        // Toggle collapsible group.
+        function toggleGroup(contentId, headerId) {
+            var content = document.getElementById(contentId);
+            var header = document.getElementById(headerId);
+            if (content.style.maxHeight && content.style.maxHeight !== "0px") {
+                content.style.maxHeight = "0px";
+                header.classList.remove("active");
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+                header.classList.add("active");
+            }
+        }
+        // Add another attachment input field.
+        function addAttachment() {
+            let container = document.getElementById("attachmentContainer");
+            let input = document.createElement("input");
+            input.type = "file";
+            input.name = "attachment[]";
+            input.accept = "application/pdf";
+            container.appendChild(input);
+        }
+        // Handle form submission.
+        function submitBlog() {
+            // Copy HTML from both editors into hidden fields.
+            document.getElementById("hiddenBlogTitle").value = document.getElementById("blogTitleEditor").innerHTML;
+            document.getElementById("hiddenBlogContent").value = document.getElementById("blogContentEditor").innerHTML;
+            const form = document.getElementById("addBlogForm");
+            const formData = new FormData(form);
+            fetch("blogs.php?action=add", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Use our notification modal to display messages.
+                    showNotification(data.message);
+                    if (data.success) {
+                        setTimeout(function() {
+                            window.location.href = "blogs.html";
+                        }, 1500);
+                    }
+                })
+                .catch(error => console.error("Error adding blog:", error));
+        }
+        // Show notification modal with CSS.
+        function showNotification(message) {
+            var modal = document.getElementById("notificationModal");
+            document.getElementById("notificationMessage").textContent = message;
+            modal.style.display = "block";
+            setTimeout(function() {
+                modal.style.display = "none";
+            }, 3000);
+        }
+    </script>
+</head>
+
+<body>
+    <h2>Add New Blog</h2>
+    <form id="addBlogForm" enctype="multipart/form-data" onsubmit="event.preventDefault(); submitBlog();">
+        <label for="toolbarContainer">Formarting:</label>
+        <div id="toolbarContainer">
+            <div id="formattingToolbar">
+                <!-- Group 1: Basic Text Formatting -->
+                <div class="group">
+                    <div class="group-header" id="header1" onclick="toggleGroup('group1','header1')">
+                        <span>Basic Text Formatting</span>
+                        <span class="arrow">&#9654;</span>
+                    </div>
+                    <div class="group-content" id="group1">
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="toggleFormat('bold', this)">Bold</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="toggleFormat('italic', this)">Italic</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="toggleFormat('underline', this)">Underline</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="toggleFormat('strikeThrough', this)">Strikethrough</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="toggleFormat('subscript', this)">Subscript</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="toggleFormat('superscript', this)">Superscript</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="execCmd('removeFormat')">None</button>
+                        <div class="color-palette">
+                            <span>Font Color: </span>
+                            <span class="color-swatch" style="background:#000000" onmousedown="preventFocusLoss(event)" onclick="setTextColor('#000000')"></span>
+                            <span class="color-swatch" style="background:#FF0000" onmousedown="preventFocusLoss(event)" onclick="setTextColor('#FF0000')"></span>
+                            <span class="color-swatch" style="background:#00FF00" onmousedown="preventFocusLoss(event)" onclick="setTextColor('#00FF00')"></span>
+                            <span class="color-swatch" style="background:#0000FF" onmousedown="preventFocusLoss(event)" onclick="setTextColor('#0000FF')"></span>
+                            <span class="color-swatch" style="background:#FFFF00" onmousedown="preventFocusLoss(event)" onclick="setTextColor('#FFFF00')"></span>
+                            <span class="color-swatch" style="background:#FF00FF" onmousedown="preventFocusLoss(event)" onclick="setTextColor('#FF00FF')"></span>
+                            <span class="color-swatch" style="background:#00FFFF" onmousedown="preventFocusLoss(event)" onclick="setTextColor('#00FFFF')"></span>
+                        </div>
+                        <div class="color-palette">
+                            <span>Highlight: </span>
+                            <span class="color-swatch" style="background:#FFFF00" onmousedown="preventFocusLoss(event)" onclick="setHighlight('#FFFF00')"></span>
+                            <span class="color-swatch" style="background:#FFC0CB" onmousedown="preventFocusLoss(event)" onclick="setHighlight('#FFC0CB')"></span>
+                            <span class="color-swatch" style="background:#90EE90" onmousedown="preventFocusLoss(event)" onclick="setHighlight('#90EE90')"></span>
+                            <span class="color-swatch" style="background:#ADD8E6" onmousedown="preventFocusLoss(event)" onclick="setHighlight('#ADD8E6')"></span>
+                            <span class="color-swatch" style="background:#FFA500" onmousedown="preventFocusLoss(event)" onclick="setHighlight('#FFA500')"></span>
+                        </div>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="execCmd('fontSize','3')">Font Size</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="execCmd('fontName','Arial')">Font Style</button>
+                    </div>
+                </div>
+                <!-- Group 2: Paragraph Formatting -->
+                <div class="group">
+                    <div class="group-header" id="header2" onclick="toggleGroup('group2','header2')">
+                        <span>Paragraph Formatting</span>
+                        <span class="arrow">&#9654;</span>
+                    </div>
+                    <div class="group-content" id="group2">
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="execCmd('justifyLeft')">Left Align</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="execCmd('justifyCenter')">Center Align</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="execCmd('justifyRight')">Right Align</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="execCmd('justifyFull')">Justify</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="execCmd('insertUnorderedList')">Bullet List</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="execCmd('insertOrderedList')">Numbered List</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="execCmd('removeFormat')">None</button>
+                    </div>
+                </div>
+                <!-- Group 3: Document Structure & Layout -->
+                <div class="group">
+                    <div class="group-header" id="header3" onclick="toggleGroup('group3','header3')">
+                        <span>Document Structure & Layout</span>
+                        <span class="arrow">&#9654;</span>
+                    </div>
+                    <div class="group-content" id="group3">
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Headers & Footers</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Page Break</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Section Break</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Column Layout</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Custom Margins</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Custom Page Size</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Watermark</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="execCmd('removeFormat')">None</button>
+                    </div>
+                </div>
+                <!-- Group 4: Tables & Lists -->
+                <div class="group">
+                    <div class="group-header" id="header4" onclick="toggleGroup('group4','header4')">
+                        <span>Tables & Lists</span>
+                        <span class="arrow">&#9654;</span>
+                    </div>
+                    <div class="group-content" id="group4">
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Insert Table</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Table Styles</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Merge Table Cells</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Split Table Cells</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Table Borders & Shading</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Sorting Table Data</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Table Alignment</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Convert Text to Table</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Convert Table to Text</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Cell Padding & Spacing</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="execCmd('removeFormat')">None</button>
+                    </div>
+                </div>
+                <!-- Group 5: Media & Interactive Elements -->
+                <div class="group">
+                    <div class="group-header" id="header5" onclick="toggleGroup('group5','header5')">
+                        <span>Media & Interactive Elements</span>
+                        <span class="arrow">&#9654;</span>
+                    </div>
+                    <div class="group-content" id="group5">
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="execCmd('insertHorizontalRule')">Horizontal Line</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Insert Image</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Insert Video</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Insert Audio</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="notImplemented()">Insert GIFs</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="createLink()">Hyperlink</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="execCmd('unlink')">Remove Hyperlink</button>
+                        <button type="button" onmousedown="preventFocusLoss(event)" onclick="execCmd('removeFormat')">None</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <label for="blogTitle">Blog Title (optional if document attached):</label>
+        <!-- Small Blog Title Editor -->
+        <div id="blogTitleEditor" class="editorBox" contenteditable="true" style="height:40px; background:#fff;" onfocus="setCurrentEditor('blogTitleEditor')"></div>
+
+        <label for="blogContentEditor">Blog Content (optional if document attached):</label>
+        <!-- Large Blog Content Editor -->
+        <div id="blogContentEditor" class="editorBox" contenteditable="true" style="min-height:300px; background:#fff;" onfocus="setCurrentEditor('blogContentEditor')"></div>
+
+        <label for="attachment">Attachment (PDF only):</label>
+        <div id="attachmentContainer">
+            <input type="file" name="attachment[]" accept="application/pdf">
+        </div>
+        <button type="button" class="button" onclick="addAttachment()">Add Another Attachment</button>
+
+        <!-- Hidden fields to capture the HTML from editors -->
+        <input type="hidden" id="hiddenBlogTitle" name="blogTitle">
+        <input type="hidden" id="hiddenBlogContent" name="blogContent">
+
+        <button type="submit" class="button">Submit Blog</button>
+    </form>
+
+    <!-- Notification Modal -->
+    <div id="notificationModal" class="modal">
+        <div class="modal-content">
+            <span id="notificationClose" class="close" onclick="document.getElementById('notificationModal').style.display='none'">&times;</span>
+            <p id="notificationMessage"></p>
+        </div>
+    </div>
+</body>
+
+</html>

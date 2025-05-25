@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workspace - Order Work</title>
+    <link rel="stylesheet" href="style4.css">
+    <style>
+        /* Additional styles specific to the workspace page */
+        
+        .order-details-table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        
+        .order-details-table th,
+        .order-details-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .order-details-table th {
+            background-color: #007bff;
+            color: #fff;
+        }
+        
+        .document-container {
+            width: 80%;
+            margin: 20px auto;
+        }
+        
+        .document-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #fafafa;
+            margin-bottom: 10px;
+        }
+        
+        .preview {
+            margin-top: 10px;
+        }
+        
+        #download-links {
+            border: 1px solid #ccc;
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 20px auto;
+            text-align: left;
+            font-size: 14px;
+        }
+        /* New rule to center the table within the download links section */
+        
+        #download-links table {
+            width: 90%;
+            margin: 0 auto;
+        }
+        
+        #download-links a {
+            display: block;
+            color: #007bff;
+            text-decoration: none;
+            margin-bottom: 5px;
+        }
+        
+        .workspace-section {
+            width: 80%;
+            margin: 30px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+        
+        .workspace-section h3 {
+            margin-top: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        input[type="file"] {
+            margin-bottom: 10px;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 20px auto;
+            border-radius: 5px;
+            transition: 0.3s;
+            display: block;
+            width: 200px;
+            text-align: center;
+        }
+        
+        .btn:hover {
+            background-color: #218838;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            width: 80%;
+            margin: 20px auto;
+        }
+        
+        .action-buttons .btn {
+            width: 45%;
+            margin: 10px 0;
+        }
+        
+        body {
+            padding-bottom: 200px;
+            min-height: 150vh;
+        }
+        
+        .footer {
+            background-color: #00796b;
+            color: white;
+            padding: 20px 10px;
+            text-align: center;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+            left: 0;
+            font-size: 12px;
+            z-index: 1000;
+        }
+        
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            color: #ffd700;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+        
+        #errorOutput {
+            width: 80%;
+            margin: 20px auto;
+            color: red;
+            font-weight: bold;
+            text-align: center;
+        }
+        /* Modal styles for the upload/thank you popup */
+        
+        #uploadModal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        #uploadModalContent {
+            background: linear-gradient(135deg, #007bff, #66b2ff);
+            padding: 30px;
+            border-radius: 8px;
+            width: 60%;
+            margin: 15% auto;
+            text-align: center;
+            color: white;
+            font-size: 24px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        /* Spinner styles */
+        
+        #uploadSpinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #fff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px auto;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+    <script>
+        // Helper function to convert newline characters to <br> tags.
+        function nl2br(str) {
+            if (!str) return "";
+            return str.replace(/(?:\r\n|\r|\n)/g, '<br>');
+        }
+
+        // --- Document display functions ---
+
+        // List of previewable extensions.
+        const previewableExtensions = ["pdf", "png", "jpg", "jpeg", "gif", "txt", "html", "css", "js", "sql", "odt"];
+
+        // If the file's extension is previewable, return an embedded preview.
+        function getPreviewHTML(fileURL, ext) {
+            ext = ext.toLowerCase();
+            if (ext === 'pdf') {
+                return `<iframe src="${fileURL}" style="width:100%; height:400px;" frameborder="0"></iframe>`;
+            } else if (['png', 'jpg', 'jpeg', 'gif', 'svg'].includes(ext)) {
+                return `<img src="${fileURL}" alt="Document Preview" style="max-width:100%; height:auto;">`;
+            } else if (['txt', 'html', 'css', 'js', 'sql', 'odt'].includes(ext)) {
+                return `<iframe src="${fileURL}" style="width:100%; height:400px;" frameborder="0"></iframe>`;
+            } else {
+                // For non-previewable file types, show a download link only.
+                return `<a href="${fileURL}" target="_blank">Download Document</a>`;
+            }
+        }
+
+        // Build a document preview box for the separate preview container.
+        function buildDocumentPreview(fileURL, fileName) {
+            const parts = fileName.split('.');
+            const ext = parts.pop();
+            return '<div class="document-box">' +
+                '<strong>' + fileName + '</strong><br>' +
+                getPreviewHTML(fileURL, ext) +
+                '</div>';
+        }
+
+        // Build a row for the "Uploaded Documents" table (download links only, no preview).
+        function buildDocumentRow(fileURL, fileName, index) {
+            return '<tr>' +
+                '<td>' + (index + 1) + '</td>' +
+                '<td>' + fileName + '</td>' +
+                '<td><a href="' + fileURL + '" target="_blank">Download</a></td>' +
+                '</tr>';
+        }
+
+        // Base URL for documents.
+        const baseURL = "../client/request/";
+
+        let orderData = {}; // Global variable to hold order details
+
+        // Functions to show and update the upload modal.
+        function showUploadModal(message) {
+            document.getElementById("uploadMessage").innerText = message;
+            document.getElementById("uploadModal").style.display = "block";
+        }
+
+        function updateUploadModal(message) {
+            document.getElementById("uploadMessage").innerText = message;
+        }
+
+        function hideUploadModal() {
+            document.getElementById("uploadModal").style.display = "none";
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const order_id = urlParams.get('order_id');
+            if (!order_id) {
+                document.getElementById("orderDetails").innerText = "Order ID missing.";
+                setTimeout(() => {
+                    window.history.go(-2);
+                }, 2500);
+                return;
+            }
+
+            // Fetch order details.
+            fetch('getOrderDetails.php?order_id=' + order_id)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById("orderDetails").innerHTML = "<p>Error loading order details: " + data.error + "</p>";
+                        setTimeout(() => {
+                            window.history.go(-2);
+                        }, 2500);
+                        return;
+                    }
+                    orderData = data;
+                    // Calculate price as (number_of_pages * 2)
+                    let calculatedPrice = data.number_of_pages * 2;
+                    let detailsHTML = "<table class='order-details-table'><tbody>" +
+                        "<tr><th>Order ID</th><td>" + data.order_id + "</td></tr>" +
+                        "<tr><th>Client ID</th><td>" + data.client_id + "</td></tr>" +
+                        "<tr><th>Subject</th><td>" + data.subject + "</td></tr>" +
+                        "<tr><th>Name</th><td>" + data.name + "</td></tr>" +
+                        "<tr><th>Description</th><td>" + nl2br(data.description) + "</td></tr>" +
+                        "<tr><th>Instructions</th><td>" + nl2br(data.instructions) + "</td></tr>" +
+                        "<tr><th>Deadline</th><td>" + data.deadline + "</td></tr>" +
+                        "<tr><th>Price</th><td>$" + calculatedPrice + "</td></tr>" +
+                        "<tr><th>Number of Pages</th><td>" + data.number_of_pages + "</td></tr>" +
+                        "</tbody></table>";
+                    document.getElementById("orderDetails").innerHTML = detailsHTML;
+
+                    // Process uploaded documents (if any).
+                    if (data.document_upload_link && data.document_upload_link.trim() !== "") {
+                        let docNames = data.document_name.split(",");
+                        let docLinks = data.document_upload_link.split(",");
+                        let previewHTML = "";
+                        let tableHTML = '<div id="download-links"><h3>Uploaded Documents</h3><table><thead>' +
+                            '<tr><th>#</th><th>Document Name</th><th>Download Link</th></tr>' +
+                            '</thead><tbody>';
+                        for (let i = 0; i < docLinks.length; i++) {
+                            let docName = docNames[i] ? docNames[i].trim() : "Document " + (i + 1);
+                            let docLink = baseURL + docLinks[i].trim();
+                            previewHTML += buildDocumentPreview(docLink, docName);
+                            tableHTML += buildDocumentRow(docLink, docName, i);
+                        }
+                        tableHTML += '</tbody></table></div>';
+                        let docsHTML = '<div class="document-container"><h3>Document Previews</h3>' + previewHTML + '</div>' + tableHTML;
+                        document.getElementById("orderDetails").innerHTML += docsHTML;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching order details:", error);
+                    document.getElementById("orderDetails").innerHTML = "<p>Error loading order details.</p>";
+                    setTimeout(() => {
+                        window.history.go(-2);
+                    }, 2500);
+                });
+
+            // Event listeners for file attachments.
+            document.getElementById("addAnswerFileBtn").addEventListener("click", function() {
+                var container = document.getElementById("answerFilesContainer");
+                var input = document.createElement("input");
+                input.type = "file";
+                input.name = "answerFiles[]";
+                input.className = "answerFileInput";
+                container.appendChild(input);
+            });
+
+            document.getElementById("addExplanationFileBtn").addEventListener("click", function() {
+                var container = document.getElementById("explanationFilesContainer");
+                var input = document.createElement("input");
+                input.type = "file";
+                input.name = "explanationFiles[]";
+                input.className = "explanationFileInput";
+                container.appendChild(input);
+            });
+
+            // Work submission form.
+            document.getElementById("workForm").addEventListener("submit", function(e) {
+                if (!orderData || Object.keys(orderData).length === 0) {
+                    e.preventDefault();
+                    alert("Error: Order details are not available. Cannot submit work.");
+                    setTimeout(() => {
+                        window.history.go(-2);
+                    }, 2500);
+                    return;
+                }
+                e.preventDefault();
+
+                // Show the upload modal with spinner.
+                showUploadModal("Uploading your work, please wait...");
+
+                const answerInputs = document.querySelectorAll("#answerFilesContainer input[type='file']");
+                const explanationInputs = document.querySelectorAll("#explanationFilesContainer input[type='file']");
+                let answerFileAttached = false;
+                let explanationFileAttached = false;
+                answerInputs.forEach(input => {
+                    if (input.files.length > 0) {
+                        answerFileAttached = true;
+                    }
+                });
+                explanationInputs.forEach(input => {
+                    if (input.files.length > 0) {
+                        explanationFileAttached = true;
+                    }
+                });
+                if (!answerFileAttached || !explanationFileAttached) {
+                    updateUploadModal("Submission Error: Please attach at least one file for both your Answer and Explanation.");
+                    // Hide the error modal after 3 seconds and allow the user to try again.
+                    setTimeout(function() {
+                        hideUploadModal();
+                    }, 3000);
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append("order_id", orderData.order_id);
+
+                answerInputs.forEach(input => {
+                    if (input.files.length > 0) {
+                        formData.append("answerFiles[]", input.files[0]);
+                    }
+                });
+                formData.append("answerComments", document.getElementById("answerComments").value.trim());
+
+                explanationInputs.forEach(input => {
+                    if (input.files.length > 0) {
+                        formData.append("explanationFiles[]", input.files[0]);
+                    }
+                });
+                formData.append("explanationComments", document.getElementById("explanationComments").value.trim());
+                formData.append("orderData", JSON.stringify(orderData));
+
+                fetch('submitWork.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            updateUploadModal("Thank you for your submission! Your work has been uploaded.");
+                            setTimeout(function() {
+                                hideUploadModal();
+                                window.history.go(-2);
+                            }, 2500);
+                        } else {
+                            updateUploadModal("Error submitting work: " + result.error);
+                            console.error("Error submitting work:", result.error);
+                        }
+                    })
+                    .catch(error => {
+                        updateUploadModal("Error submitting work: " + error);
+                        console.error("Error submitting work:", error);
+                    });
+            });
+
+            document.getElementById("continueOrdersBtn").addEventListener("click", function() {
+                window.history.go(-2);
+            });
+
+            document.getElementById("goSkipBtn").addEventListener("click", function() {
+                if (orderData && orderData.order_id) {
+                    window.open("skipporders.html?order_id=" + orderData.order_id, "_blank", "width=800,height=600");
+                } else {
+                    alert("Order details not available. Cannot skip order.");
+                }
+            });
+
+            // Check every 5 seconds whether the current session user is still a tutor.
+            setInterval(function() {
+                fetch('checkUserRole.php')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            window.location.href = "../login.html";
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error checking user role:", error);
+                        window.location.href = "../login.html";
+                    });
+            }, 5000);
+        });
+    </script>
+</head>
+
+<body>
+    <h2>Workspace for Order Work</h2>
+    <div id="orderDetails">
+        <!-- Order details, document previews, and download links will be inserted here -->
+    </div>
+    <div id="errorOutput"></div>
+    <hr>
+    <form id="workForm" enctype="multipart/form-data">
+        <div class="workspace-section">
+            <h3>Your Answer</h3>
+            <div class="form-group">
+                <label>Upload Answer Files:</label>
+                <div id="answerFilesContainer">
+                    <input type="file" name="answerFiles[]" class="answerFileInput">
+                </div>
+                <button type="button" id="addAnswerFileBtn" class="btn">Add More Answer Files</button>
+            </div>
+            <div class="form-group">
+                <label for="answerComments">Comments on your Answer:</label>
+                <textarea id="answerComments" name="answerComments" placeholder="Enter any comments here..."></textarea>
+            </div>
+        </div>
+        <div class="workspace-section">
+            <h3>Explanation</h3>
+            <div class="form-group">
+                <label>Upload Explanation Files:</label>
+                <div id="explanationFilesContainer">
+                    <input type="file" name="explanationFiles[]" class="explanationFileInput">
+                </div>
+                <button type="button" id="addExplanationFileBtn" class="btn">Add More Explanation Files</button>
+            </div>
+            <div class="form-group">
+                <label for="explanationComments">Comments on your Explanation:</label>
+                <textarea id="explanationComments" name="explanationComments" placeholder="Enter your explanation comments here..."></textarea>
+            </div>
+        </div>
+        <button type="submit" class="btn" id="workspaceSubmitBtn">Submit Work</button>
+    </form>
+    <div id="thankYouContainer"></div>
+    <div class="action-buttons">
+        <button type="button" class="btn" id="continueOrdersBtn">Continue Getting Orders</button>
+        <button type="button" class="btn" id="goSkipBtn">Go Skip the Order</button>
+    </div>
+    <footer class="footer">
+        <p>&copy; 2025 EduAssista | <a href="#">Privacy Policy</a> | <a href="#">Terms of Service</a></p>
+    </footer>
+
+    <!-- Upload Modal Popup -->
+    <div id="uploadModal" class="modal">
+        <div id="uploadModalContent">
+            <div id="uploadSpinner"></div>
+            <p id="uploadMessage">Uploading your work, please wait...</p>
+        </div>
+    </div>
+</body>
+
+</html>

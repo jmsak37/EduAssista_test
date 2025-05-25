@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>requeste Orders</title>
+    <!-- Load the CSS files -->
+    <link rel="stylesheet" href="style3.css">
+    <link rel="stylesheet" href="style4.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Additional table styling for the orders list */
+        
+        .order-table {
+            width: 80%;
+            margin: 30px auto;
+            border-collapse: collapse;
+            background: #fff;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .order-table th,
+        .order-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .order-table th {
+            background-color: #007bff;
+            color: #fff;
+        }
+        
+        .order-link {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        
+        .order-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Load navigation and footer.
+            fetch('navigation.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("navigation").innerHTML = data;
+                })
+                .catch(error => console.error("Error loading navigation:", error));
+
+            fetch('footer.html')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("footer").innerHTML = data;
+                })
+                .catch(error => console.error("Error loading footer:", error));
+
+            // Fetch orders from requests.php.
+            fetch('requests.php')
+                .then(response => response.json())
+                .then(orders => {
+                    const container = document.getElementById("ordersContainer");
+                    if (orders.error) {
+                        container.innerHTML = "<p>Error: " + orders.error + "</p>";
+                        return;
+                    }
+                    if (orders.length === 0) {
+                        container.innerHTML = "<p>No orders found.</p>";
+                        return;
+                    }
+                    let tableHTML = "<table class='order-table'><thead><tr>" +
+                        "<th>Order Name</th>" +
+                        "<th>Deadline</th>" +
+                        "<th>Client ID</th>" +
+                        "<th>Instructions</th>" +
+                        "<th>Pages</th>" +
+                        "<th>Amount ($)</th>" +
+                        "</tr></thead><tbody>";
+                    orders.forEach(order => {
+                        // Calculate amount as number_of_pages * 2.
+                        let amount = order.number_of_pages * 2;
+                        tableHTML += "<tr>" +
+                            // Order name is clickable: opens beingdone.html with order_id.
+                            "<td><a class='order-link' href='being_done.html?order_id=" + order.order_id + "'>" + order.name + "</a></td>" +
+                            "<td>" + order.deadline + "</td>" +
+                            "<td>" + order.client_id + "</td>" +
+                            "<td>" + order.instructions + "</td>" +
+                            "<td>" + order.number_of_pages + "</td>" +
+                            "<td>$" + amount.toFixed(2) + "</td>" +
+                            "</tr>";
+                    });
+                    tableHTML += "</tbody></table>";
+                    container.innerHTML = tableHTML;
+                })
+                .catch(error => {
+                    console.error("Error fetching orders:", error);
+                    document.getElementById("ordersContainer").innerHTML = "<p>Error loading orders.</p>";
+                });
+        });
+
+        // NEW: Check every 5 seconds whether the current session user is still a tutor.
+        setInterval(function() {
+            fetch('checkUserRole.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        // If the user is not a tutor (or not logged in), redirect to login page.
+                        window.location.href = "../login.html";
+                    }
+                })
+                .catch(error => {
+                    console.error("Error checking user role:", error);
+                    window.location.href = "../login.html";
+                });
+        }, 5000); // 5 seconds interval
+    </script>
+</head>
+
+<body>
+    <!-- Navigation loaded dynamically -->
+    <div id="navigation"></div>
+
+    <h2>REQUEST ORDERS</h2>
+
+    <!-- Container for orders table -->
+    <div id="ordersContainer">
+        <!-- Table content will be injected here -->
+    </div>
+
+    <!-- Footer loaded dynamically -->
+    <div id="footer"></div>
+</body>
+
+</html>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Client Registration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        
+        .form-container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-container h1 {
+            text-align: center;
+        }
+        
+        .form-container label {
+            display: block;
+            margin: 5px 0;
+        }
+        
+        .form-container input[type="text"],
+        .form-container input[type="email"],
+        .form-container input[type="password"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .form-container input[type="submit"],
+        .form-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .form-container input[type="submit"]:hover,
+        .form-container button:hover {
+            background-color: #45a049;
+        }
+        
+        #message {
+            margin-top: 20px;
+            color: red;
+            text-align: center;
+        }
+        
+        #existing-details {
+            display: none;
+            color: red;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+        <h1>Register Client</h1>
+        <form action="register_client.php" method="POST">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required><br>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required><br>
+            <label for="email_confirm">Confirm Email:</label>
+            <input type="email" id="email_confirm" name="email_confirm" required><br>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required><br>
+            <label for="password_confirm">Confirm Password:</label>
+            <input type="password" id="password_confirm" name="password_confirm" required><br>
+            <label for="educational_level">Educational Level:</label>
+            <input type="text" id="educational_level" name="educational_level" required><br>
+            <label for="preferred_subject">Preferred Subject:</label>
+            <input type="text" id="preferred_subject" name="preferred_subject" required><br>
+            <input type="submit" value="Register">
+        </form>
+
+        <div id="existing-details">
+            <p id="existing-message"></p>
+            <a href="register_client.html">Go back and use different details</a>
+            <button onclick="window.location.href='../login.html';">I have an account. Login</button>
+        </div>
+
+        <p id="message"></p>
+    </div>
+
+    <script>
+        function displayMessage(message, color) {
+            const messageElement = document.getElementById('message');
+            messageElement.innerText = message;
+            messageElement.style.color = color;
+        }
+
+        function handleRedirect(status) {
+            if (status === 'exists') {
+                const email = new URLSearchParams(window.location.search).get('email');
+                const username = new URLSearchParams(window.location.search).get('username');
+                document.getElementById('existing-message').innerText = `The email "${email}" or username "${username}" is already in use. Please use different details.`;
+                document.getElementById('existing-details').style.display = 'block';
+            } else if (status === 'success') {
+                window.location.href = 'successresults.html';
+            } else {
+                displayMessage(getErrorMessage(status), 'red');
+            }
+        }
+
+        function getErrorMessage(status) {
+            switch (status) {
+                case 'email_mismatch':
+                    return 'Emails do not match.';
+                case 'password_mismatch':
+                    return 'Passwords do not match.';
+                case 'client_exists':
+                    return 'Client already exists.';
+                case 'error':
+                    return 'An error occurred. Please try again.';
+                default:
+                    return '';
+            }
+        }
+
+        // Check for URL parameters and handle redirection or error messages
+        const urlParams = new URLSearchParams(window.location.search);
+        const status = urlParams.get('status');
+
+        handleRedirect(status);
+    </script>
+</body>
+
+</html>

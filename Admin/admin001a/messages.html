@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Support Chat – EduAssista</title>
+  <style>
+    body { margin:0; font-family:Arial,sans-serif; background:#f0f2f5; }
+    .container { max-width:900px; margin:20px auto; background:#fff; border-radius:8px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.1); overflow:hidden; }
+    header { background:#00796b; color:#fff; padding:16px }
+    header h1 { margin:0; font-size:1.4em }
+
+    .controls { display:flex; flex-wrap:wrap; gap:12px; padding:16px; align-items:flex-end }
+    .controls > div { display:flex; flex-direction:column }
+    .controls label { margin-bottom:4px; font-size:.9em }
+    .controls select, .controls input, .controls button {
+      padding:8px; font-size:.95em; border:1px solid #ccc; border-radius:4px;
+    }
+    .controls button { background:#00796b; color:#fff; border:none; cursor:pointer }
+    .controls button:disabled { background:#aaa; cursor:default }
+
+    #confirmedDetails { display:none; margin:0 16px 16px; padding:12px;
+      background:#fafafa; border:1px solid #eee; border-radius:4px; font-size:.9em;
+    }
+
+    #chatList { max-height:250px; overflow-y:auto; border-top:1px solid #eee }
+    .chat-item { padding:12px; border-bottom:1px solid #eee; cursor:pointer }
+    .chat-item.new { background:#e8f5e9 }
+    .chat-item:hover { background:#f1f1f1 }
+
+    #chatBox { display:none; border-top:1px solid #ddd }
+    #messagesArea { max-height:300px; overflow-y:auto; padding:12px }
+    .msg { margin-bottom:12px; position:relative }
+    .bubble { display:inline-block; padding:10px; border-radius:16px; max-width:75% }
+    .msg.client  .bubble { background:#e1f5fe }
+    .msg.tutor   .bubble { background:#fff9c4 }
+    .msg.guest   .bubble { background:#fce4ec }
+    .msg.support .bubble { background:#c8e6c9 }
+    .msg .meta { font-size:.75em; color:#555; margin-top:2px }
+    .edit-btn, .del-btn { position:absolute; top:0; font-size:.8em; cursor:pointer; color:#666 }
+    .edit-btn { right:28px } .del-btn { right:8px }
+
+    #replyForm { display:flex; padding:12px; border-top:1px solid #eee }
+    #replyForm textarea { flex:1; padding:8px; border:1px solid #ccc; border-radius:4px; resize:none }
+    #replyForm button { margin-left:8px; padding:8px 16px; background:#00796b; color:#fff; border:none; cursor:pointer }
+
+    /* Confirm Modal */
+    #confirmModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,0.5); z-index:2000 }
+    #confirmModal .modal-content { background:#fff; margin:10% auto; padding:20px;
+      width:320px; border-radius:6px; position:relative; font-size:.9em }
+    #confirmModal .close { position:absolute; top:8px; right:12px; font-size:20px; cursor:pointer }
+    #confirmModal h3 { margin-top:0 }
+    #confirmModal button { margin-top:12px; padding:8px 14px; border:none; border-radius:4px; cursor:pointer }
+    .confirm-btn { background:#4CAF50; color:#fff; margin-right:8px }
+    .cancel-btn  { background:#f44336; color:#fff }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header><h1>Support Chat</h1></header>
+
+  <div class="controls">
+    <div>
+      <label for="roleSelect">Role</label>
+      <select id="roleSelect">
+        <option value="">— select role —</option>
+        <option value="client">Client</option>
+        <option value="tutor">Tutor</option>
+        <option value="guest">Guest</option>
+      </select>
+    </div>
+    <div>
+      <label for="userSelect">Select User</label>
+      <select id="userSelect" disabled>
+        <option>— choose role first —</option>
+      </select>
+    </div>
+    <div>
+      <label for="searchInput">or Search</label>
+      <input type="text" id="searchInput" placeholder="ID or username/email">
+      <button id="searchBtn">Search</button>
+    </div>
+    <div id="guestFields" style="display:none;">
+      <label for="guestName">Guest Name</label>
+      <input type="text" id="guestName" placeholder="Full name">
+      <label for="guestEmail">Guest Email</label>
+      <input type="text" id="guestEmail" placeholder="Email">
+    </div>
+    <button id="startChat" disabled>Start Chat</button>
+  </div>
+
+  <div id="confirmedDetails"></div>
+  <div id="chatList"></div>
+
+  <div id="chatBox">
+    <div id="messagesArea"></div>
+    <form id="replyForm">
+      <textarea id="replyText" rows="2" placeholder="Type your reply…"></textarea>
+      <button type="submit">Send</button>
+    </form>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div id="confirmModal">
+  <div class="modal-content">
+    <span class="close" onclick="hideConfirmModal()">&times;</span>
+    <h3>Confirm User</h3>
+    <div id="confirmInfo"></div>
+    <button class="confirm-btn" onclick="doConfirm()">Confirm</button>
+    <button class="cancel-btn"  onclick="hideConfirmModal()">Cancel</button>
+  </div>
+</div>
+
+<script>
+let currentThread = null, confirmedUser = null;
+
+// On load
+window.onload = () => {
+  // Hide Guest if none in DB
+  fetch('messages.php?action=hasGuests')
+    .then(r=>r.json())
+    .then(d=>{
+      if (!d.hasGuests) {
+        let opt = document.querySelector('#roleSelect option[value=guest]');
+        if (opt) opt.remove();
+      }
+    });
+
+  document.getElementById('roleSelect').addEventListener('change', onRoleChange);
+  document.getElementById('userSelect').addEventListener('change', onUserSelect);
+  document.getElementById('searchBtn').addEventListener('click', onSearch);
+  document.getElementById('startChat').addEventListener('click', startChat);
+  document.getElementById('replyForm').addEventListener('submit', sendReply);
+
+  loadThreads();
+};
+
+function onRoleChange() {
+  confirmedUser = null;
+  updateConfirmedDisplay();
+  document.getElementById('startChat').disabled = true;
+
+  const role = this.value;
+  const us   = document.getElementById('userSelect');
+  us.disabled = true;
+  us.innerHTML = '<option>— loading… —</option>';
+
+  document.getElementById('guestFields').style.display = (role==='guest'?'block':'none');
+
+  if (role==='client' || role==='tutor') {
+    fetch(`messages.php?action=getUsers&role=${role}`)
+      .then(r=>r.json())
+      .then(d=>{
+        if (!d.success) {
+          alert('Error: '+d.message);
+          us.innerHTML = '<option>— error —</option>';
+          return;
+        }
+        if (d.users.length === 0) {
+          us.innerHTML = '<option>— no users found —</option>';
+        } else {
+          us.innerHTML = d.users.map(u=>
+            `<option value='${JSON.stringify(u)}'>
+              ${u.UserName} (ID:${u.UserID})
+            </option>`
+          ).join('');
+          us.disabled = false;
+        }
+      });
+  } else if (role==='guest') {
+    us.innerHTML = '<option>— not needed —</option>';
+    us.disabled = true;
+  } else {
+    us.innerHTML = '<option>— choose role first —</option>';
+  }
+}
+
+function onUserSelect() {
+  const val = this.value;
+  if (!val) return;
+  confirmedUser = JSON.parse(val);
+  confirmedUser.type = 'user';
+  updateConfirmedDisplay();
+  document.getElementById('startChat').disabled = false;
+}
+
+function onSearch() {
+  const role = document.getElementById('roleSelect').value;
+  const q    = document.getElementById('searchInput').value.trim();
+  if (!role || (role!=='guest' && !q)) {
+    return alert('Select a role and enter a search term.');
+  }
+
+  fetch(`messages.php?action=searchUser&role=${role}&query=${encodeURIComponent(q)}`)
+    .then(r=>r.json())
+    .then(d=>{
+      if (!d.success || d.users.length === 0) {
+        return alert('No user found.');
+      }
+      confirmedUser = d.users[0];
+      confirmedUser.type = (role==='guest'?'guest':'user');
+      showConfirmModal(confirmedUser);
+    });
+}
+
+function showConfirmModal(u) {
+  const info = document.getElementById('confirmInfo');
+  if (u.type==='user') {
+    info.innerHTML = `
+      <p><b>ID:</b> ${u.UserID}</p>
+      <p><b>Name:</b> ${u.UserName}</p>
+      <p><b>Email:</b> ${u.Email}</p>
+      <p><b>Joined:</b> ${u.CreatedAt}</p>
+      <p><b>Status:</b> ${u.status}</p>`;
+  } else {
+    info.innerHTML = `<p><b>Guest:</b> ${u.UserName}</p>`;
+  }
+  document.getElementById('confirmModal').style.display = 'block';
+}
+
+function hideConfirmModal() {
+  document.getElementById('confirmModal').style.display = 'none';
+}
+
+function doConfirm() {
+  hideConfirmModal();
+  updateConfirmedDisplay();
+  document.getElementById('startChat').disabled = false;
+}
+
+function updateConfirmedDisplay() {
+  const cd = document.getElementById('confirmedDetails');
+  if (!confirmedUser) {
+    cd.style.display = 'none';
+    return;
+  }
+  if (confirmedUser.type==='user') {
+    cd.innerHTML = `<p><b>Confirmed:</b> ${confirmedUser.UserName} (ID:${confirmedUser.UserID})<br>
+                    <b>Email:</b> ${confirmedUser.Email}</p>`;
+  } else {
+    cd.innerHTML = `<p><b>Confirmed Guest:</b> ${confirmedUser.UserName}</p>`;
+  }
+  cd.style.display = 'block';
+}
+
+function startChat() {
+  if (!confirmedUser) return;
+  const fd = new FormData();
+  fd.append('sender_type','support');
+  if (confirmedUser.type==='guest') {
+    fd.append('receiver_id','0');
+    fd.append('guest_name', confirmedUser.UserName);
+    fd.append('guest_email',confirmedUser.UserID);
+  } else {
+    fd.append('receiver_id', confirmedUser.UserID);
+  }
+
+  fetch('messages.php?action=startChat',{ method:'POST', body: fd })
+    .then(r=>r.json())
+    .then(d=>{
+      if (!d.success) alert('Error: '+d.message);
+      confirmedUser = null;
+      updateConfirmedDisplay();
+      document.getElementById('startChat').disabled = true;
+      loadThreads();
+    });
+}
+
+function loadThreads() {
+  fetch('messages.php?action=list')
+    .then(r=>r.json())
+    .then(d=>{
+      if (!d.success) return alert('Error: '+d.message);
+      const cl = document.getElementById('chatList');
+      cl.innerHTML = d.threads.map(t=>`
+        <div class="chat-item${t.unread?' new':''}"
+             onclick="openThread(${t.threadID})">
+          ${t.withName} (${t.withType}) — ${t.latest.substr(0,40)}…
+        </div>
+      `).join('');
+    });
+}
+
+function openThread(tid) {
+  currentThread = tid;
+  document.getElementById('chatBox').style.display = 'block';
+  fetch(`messages.php?action=getThread&thread_id=${tid}`)
+    .then(r=>r.json())
+    .then(d=>{
+      if (!d.success) return alert('Error: '+d.message);
+      document.getElementById('messagesArea').innerHTML = d.messages.map(m=>`
+        <div class="msg ${m.SenderType}">
+          <div class="bubble">${m.MessageText}</div>
+          <div class="meta">${m.SenderType} @ ${m.CreatedAt}</div>
+          ${m.SenderType==='support'
+            ? `<span class="edit-btn" onclick="editMessage(${m.MessageID},'${encodeURIComponent(m.MessageText)}')">✎</span>`
+            : ''}
+          <span class="del-btn" onclick="deleteMessage(${m.MessageID})">🗑</span>
+        </div>
+      `).join('');
+      const area = document.getElementById('messagesArea');
+      area.scrollTop = area.scrollHeight;
+    });
+}
+
+function sendReply(e) {
+  e.preventDefault();
+  const txt = document.getElementById('replyText').value.trim();
+  if (!txt) return;
+  const fd = new FormData();
+  fd.append('thread_id', currentThread);
+  fd.append('message_text', txt);
+  fd.append('sender_type','support');
+  fetch('messages.php?action=reply',{ method:'POST', body: fd })
+    .then(r=>r.json())
+    .then(d=>{
+      if (!d.success) alert('Error: '+d.message);
+      document.getElementById('replyText').value = '';
+      openThread(currentThread);
+      loadThreads();
+    });
+}
+
+function editMessage(id, oldEnc) {
+  const oldText = decodeURIComponent(oldEnc);
+  const t = prompt('Edit your message:', oldText);
+  if (!t || t===oldText) return;
+  const fd = new FormData();
+  fd.append('message_id', id);
+  fd.append('message_text', t);
+  fetch('messages.php?action=update',{ method:'POST', body: fd })
+    .then(r=>r.json())
+    .then(d=>{
+      if (!d.success) alert('Error: '+d.message);
+      openThread(currentThread);
+      loadThreads();
+    });
+}
+
+function deleteMessage(id) {
+  if (!confirm('Delete this message?')) return;
+  fetch('messages.php?action=delete',{
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:'message_id='+id
+  }).then(r=>r.json())
+    .then(d=>{
+      if (!d.success) alert('Error: '+d.message);
+      openThread(currentThread);
+      loadThreads();
+    });
+}
+</script>
+</body>
+</html>

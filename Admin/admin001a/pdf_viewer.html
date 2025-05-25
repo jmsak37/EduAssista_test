@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>PDF Viewer</title>
+    <style>
+        body {
+            margin: 0;
+            background: #333;
+            color: #fff;
+            overflow: auto;
+        }
+        
+        #pdf-container {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        
+        canvas {
+            display: block;
+            margin: 10px auto;
+            border: 1px solid #ccc;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
+</head>
+
+<body oncontextmenu="return false;">
+    <div id="pdf-container"></div>
+    <!-- Include PDF.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const fileUrl = urlParams.get('file'); // Expected format: "blogs/filename.pdf"
+        const container = document.getElementById('pdf-container');
+
+        if (!fileUrl) {
+            container.innerHTML = "<p>No PDF file specified.</p>";
+        } else {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+            pdfjsLib.getDocument(fileUrl).promise.then(pdf => {
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    pdf.getPage(pageNum).then(page => {
+                        const scale = 1.5;
+                        const viewport = page.getViewport({
+                            scale: scale
+                        });
+                        const canvas = document.createElement("canvas");
+                        const context = canvas.getContext("2d");
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+                        container.appendChild(canvas);
+                        const renderContext = {
+                            canvasContext: context,
+                            viewport: viewport
+                        };
+                        page.render(renderContext).promise.catch(err => {
+                            console.error("Error rendering page " + pageNum + ": " + err);
+                        });
+                    }).catch(err => {
+                        console.error("Error getting page " + pageNum + ": " + err);
+                    });
+                }
+            }).catch(err => {
+                container.innerHTML = "<p>Error loading PDF: " + err.message + "</p>";
+                console.error("Error loading PDF: ", err);
+            });
+        }
+    </script>
+</body>
+
+</html>

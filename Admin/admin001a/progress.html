@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Progress Management</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ccc;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    button {
+      padding: 5px 10px;
+      margin: 2px;
+      cursor: pointer;
+    }
+    a {
+      color: blue;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    /* Modal styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      overflow-y: auto;
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      width: 400px;
+      border-radius: 5px;
+      position: relative;
+      max-height: 80%;
+      overflow-y: auto;
+      box-sizing: border-box;
+      text-align: center;
+    }
+    .close {
+      position: absolute;
+      right: 10px;
+      top: 5px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    /* Notification Popup Modal (for success messages) */
+    #notificationModal {
+      display: none;
+      position: fixed;
+      z-index: 2000;
+      left: 50%;
+      top: 30%;
+      transform: translate(-50%, -50%);
+      background-color: #dff0d8;
+      color: #3c763d;
+      padding: 20px;
+      border: 2px solid #d6e9c6;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    /* Delete Modal styling */
+    #deleteModal .modal-content {
+      width: 300px;
+      text-align: center;
+    }
+    /* Reassign Modal styling - same width and centered text */
+    #reassignModal .modal-content {
+      width: 300px;
+      text-align: center;
+    }
+    .modal-button {
+      padding: 5px 10px;
+      margin: 2px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Progress Management</h1>
+  <table id="progressTable">
+    <thead>
+      <tr>
+        <th>Order ID</th>
+        <th>Client ID</th>
+        <th>Tutor ID</th>
+        <th>Subject</th>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Instructions</th>
+        <th>Deadline</th>
+        <th>Price</th>
+        <th>Pages</th>
+        <th>Status</th>
+        <th>Created At</th>
+        <th>Updated At</th>
+        <th>Document Name</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows will be populated by JavaScript -->
+    </tbody>
+  </table>
+
+  <!-- Update Modal for editing progress record -->
+  <div id="updateModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeUpdateModal()">&times;</span>
+      <h3>Update Progress</h3>
+      <form id="updateForm">
+        <input type="hidden" id="update_order_id" name="order_id">
+        <label for="update_tutor">Tutor:</label>
+        <select id="update_tutor" name="tutor_id">
+          <!-- Tutor options loaded dynamically -->
+        </select><br><br>
+        <label for="update_deadline">Deadline:</label>
+        <input type="datetime-local" id="update_deadline" name="deadline"><br><br>
+        <label for="update_price">Price:</label>
+        <input type="number" id="update_price" name="price" step="0.01"><br><br>
+        <label for="update_pages">Pages:</label>
+        <input type="number" id="update_pages" name="number_of_pages"><br><br>
+        <label for="update_status">Status:</label>
+        <input type="text" id="update_status" name="status"><br><br>
+        <button type="button" onclick="submitUpdate()">Update</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeDeleteModal()">&times;</span>
+      <h3>Confirm Deletion</h3>
+      <p>Are you sure you want to delete this progress record?</p>
+      <button onclick="confirmDelete()" class="modal-button">Yes</button>
+      <button onclick="closeDeleteModal()" class="modal-button">No</button>
+    </div>
+  </div>
+
+  <!-- Reassign Confirmation Modal -->
+  <div id="reassignModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeReassignModal()">&times;</span>
+      <h3>Confirm Reassignment</h3>
+      <p>Are you sure you want to reassign this order?</p>
+      <button onclick="confirmReassign()" class="modal-button">Yes</button>
+      <button onclick="closeReassignModal()" class="modal-button">No</button>
+    </div>
+  </div>
+
+  <!-- Document Modal for selecting document view option -->
+  <div id="documentModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeDocumentModal()">&times;</span>
+      <h3>Select Document to View</h3>
+      <div id="docOptions">
+        <!-- Options will be populated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Popup Modal -->
+  <div id="notificationModal">
+    <span id="notificationMessage"></span>
+  </div>
+
+  <script>
+    let progressRecords = [];
+    let selectedOrder = null; // Holds the currently selected progress record
+    let deleteOrderID = null;
+    let reassignOrderID = null; // Holds the order ID for reassignment
+
+    function showNotification(message) {
+      const notifModal = document.getElementById('notificationModal');
+      document.getElementById('notificationMessage').textContent = message;
+      notifModal.style.display = 'block';
+      setTimeout(() => {
+        notifModal.style.display = 'none';
+      }, 3000);
+    }
+
+    function loadProgress() {
+      fetch('progress.php?action=list')
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            progressRecords = data.progress;
+            populateTable();
+          } else {
+            showNotification("Error: " + data.message);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          showNotification("Error loading progress records");
+        });
+    }
+
+    function populateTable() {
+      const tbody = document.querySelector('#progressTable tbody');
+      tbody.innerHTML = "";
+      progressRecords.forEach(record => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${record.order_id}</td>
+          <td>${record.client_id}</td>
+          <td>${record.tutor_id || ''}</td>
+          <td>${record.subject}</td>
+          <td><a onclick="openDocumentModal('${record.order_id}', '${encodeURIComponent(record.name)}', '${encodeURIComponent(record.document_upload_link)}', '${encodeURIComponent(record.answer_files)}', '${encodeURIComponent(record.explanation_files)}')">${record.name}</a></td>
+          <td>${record.description}</td>
+          <td>${record.instructions}</td>
+          <td>${record.deadline}</td>
+          <td>${record.price}</td>
+          <td>${record.number_of_pages}</td>
+          <td>${record.status}</td>
+          <td>${record.created_at}</td>
+          <td>${record.updated_at}</td>
+          <td>${record.document_name}</td>
+          <td>
+            <button onclick="openUpdateModal('${record.order_id}')">Edit</button>
+            <button onclick="reassignOrder('${record.order_id}')">Reassign</button>
+            <button onclick="openDeleteModal('${record.order_id}')">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openUpdateModal(order_id) {
+      selectedOrder = progressRecords.find(o => o.order_id === order_id);
+      if (!selectedOrder) return;
+      document.getElementById('update_order_id').value = selectedOrder.order_id;
+      document.getElementById('update_deadline').value = selectedOrder.deadline ? selectedOrder.deadline.substring(0, 16) : "";
+      document.getElementById('update_price').value = selectedOrder.price || "";
+      document.getElementById('update_pages').value = selectedOrder.number_of_pages || "";
+      document.getElementById('update_status').value = selectedOrder.status || "";
+      loadTutors();
+      document.getElementById('updateModal').style.display = 'block';
+    }
+
+    function closeUpdateModal() {
+      document.getElementById('updateModal').style.display = 'none';
+    }
+
+    function loadTutors() {
+      fetch('clarification.php?action=listTutors')
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            const select = document.getElementById('update_tutor');
+            select.innerHTML = '<option value="">Select Tutor</option>';
+            data.tutors.forEach(tutor => {
+              select.innerHTML += `<option value="${tutor.UserID}">${tutor.UserName}</option>`;
+            });
+            if (selectedOrder && selectedOrder.tutor_id) {
+              select.value = selectedOrder.tutor_id;
+            }
+          } else {
+            showNotification("Error loading tutors: " + data.message);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          showNotification("Error loading tutors");
+        });
+    }
+
+    function submitUpdate() {
+      const formData = new FormData(document.getElementById('updateForm'));
+      fetch('progress.php?action=update', {
+          method: 'POST',
+          body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              showNotification("Progress updated successfully!");
+              closeUpdateModal();
+              loadProgress();
+          } else {
+              showNotification("Error: " + data.message);
+          }
+      })
+      .catch(err => {
+          console.error(err);
+          showNotification("Error updating progress");
+      });
+    }
+
+    function reassignOrder(order_id) {
+      openReassignModal(order_id);
+    }
+
+    function openReassignModal(order_id) {
+      reassignOrderID = order_id;
+      document.getElementById('reassignModal').style.display = 'block';
+    }
+
+    function closeReassignModal() {
+      document.getElementById('reassignModal').style.display = 'none';
+      reassignOrderID = null;
+    }
+
+    function confirmReassign() {
+      fetch('progress.php?action=reassign&order_id=' + reassignOrderID)
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              showNotification("Order reassigned successfully!");
+              loadProgress();
+            } else {
+              showNotification("Error: " + data.message);
+            }
+          })
+          .catch(err => {
+            console.error(err);
+            showNotification("Error reassigning order");
+          });
+      closeReassignModal();
+    }
+
+    function openDeleteModal(order_id) {
+      deleteOrderID = order_id;
+      document.getElementById('deleteModal').style.display = 'block';
+    }
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').style.display = 'none';
+      deleteOrderID = null;
+    }
+    function confirmDelete() {
+      fetch('progress.php?action=delete', {
+          method: 'POST',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order_id: deleteOrderID })
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              showNotification("Progress record deleted successfully!");
+              closeDeleteModal();
+              loadProgress();
+          } else {
+              showNotification("Error: " + data.message);
+          }
+      })
+      .catch(err => {
+          console.error(err);
+          showNotification("Error deleting progress record");
+      });
+    }
+
+    function openDocumentModal(order_id, name, document_upload_link, answer_files, explanation_files) {
+      selectedOrder = {
+          order_id: order_id,
+          name: decodeURIComponent(name),
+          document_upload_link: decodeURIComponent(document_upload_link),
+          answer_files: decodeURIComponent(answer_files),
+          explanation_files: decodeURIComponent(explanation_files)
+      };
+      const modal = document.getElementById('documentModal');
+      const optionsDiv = document.getElementById('docOptions');
+      optionsDiv.innerHTML = "";
+      
+      if (selectedOrder.document_upload_link) {
+          optionsDiv.innerHTML += `<button onclick="viewDocument('uploaded')">Documents Uploaded</button><br>`;
+      }
+      if (selectedOrder.answer_files) {
+          optionsDiv.innerHTML += `<button onclick="viewDocument('answers')">Answers Documents</button><br>`;
+      }
+      if (selectedOrder.explanation_files) {
+          optionsDiv.innerHTML += `<button onclick="viewDocument('explanation')">Explanation Documents</button><br>`;
+      }
+      optionsDiv.innerHTML += `<button onclick="viewDocument('all')">All Documents</button>`;
+      modal.style.display = 'block';
+    }
+
+    function closeDocumentModal() {
+      document.getElementById('documentModal').style.display = 'none';
+    }
+
+    function viewDocument(type) {
+      let fileParam = "";
+      if (type === "uploaded") {
+        fileParam = selectedOrder.document_upload_link;
+      } else if (type === "answers") {
+        fileParam = selectedOrder.answer_files;
+      } else if (type === "explanation") {
+        fileParam = selectedOrder.explanation_files;
+      } else if (type === "all") {
+        fileParam = selectedOrder.document_upload_link;
+      }
+      window.location.href = 'view_pro_document.php?type=' + type + '&order_id=' + selectedOrder.order_id + '&file=' + encodeURIComponent(fileParam);
+      closeDocumentModal();
+    }
+
+    window.onload = loadProgress;
+  </script>
+</body>
+</html>

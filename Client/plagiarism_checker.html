@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plagiarism Checker</title>
+    <style>
+        /* General body styles */
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        /* Navigation bar styles */
+        
+        .navbar {
+            background-color: #1dbab4;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            overflow-x: auto;
+            white-space: nowrap;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navbar a {
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 14px 20px;
+            text-decoration: none;
+        }
+        
+        .navbar a:hover {
+            background-color: #004d40;
+            border-radius: 4px;
+        }
+        /* Centering and sizing the container */
+        
+        .container {
+            flex: 1;
+            width: 90%;
+            max-width: 1200px;
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin: 20px auto;
+            overflow-y: auto;
+        }
+        /* Title styling */
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        /* Form styles */
+        
+        form {
+            width: 100%;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .form-group textarea,
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .form-group textarea {
+            height: 250px;
+        }
+        
+        .form-group input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .form-group input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+        /* Result section */
+        
+        .result {
+            margin-top: 30px;
+            width: 100%;
+        }
+        
+        .result table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .result table,
+        .result th,
+        .result td {
+            border: 1px solid #ddd;
+        }
+        
+        .result th,
+        .result td {
+            padding: 10px;
+            text-align: left;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+        }
+        
+        .loading img {
+            width: 50px;
+            height: 50px;
+        }
+        /* Footer styles */
+        
+        .footer {
+            background-color: #00796b;
+            color: white;
+            padding: 20px 10px;
+            text-align: center;
+            width: 100%;
+            font-size: 12px;
+            z-index: 1000;
+        }
+        
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            color: #ffd700;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navigation Bar -->
+    <header class="navbar">
+        <a href="index.html">EduAssista</a>
+        <a href="Plagiarism_Checker.html">Plagiarism Checker</a>
+        <a href="order.php" class="button">Order Now</a>
+        <a href="orders_in_progress.html">Orders in Progress</a>
+        <a href="completed_orders.html">Finished Orders</a>
+        <a href="dipost.html">Dipost</a>
+        <a href="supportcontact.html">Contact Support</a>
+        <a href="profile.html">Profile</a>
+    </header>
+
+    <!-- Main Content Container -->
+    <div class="container">
+        <h1>Plagiarism Checker</h1>
+        <form id="plagiarismForm" action="../plagiarism_check.php" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="textContent">Paste your text here:</label>
+                <textarea id="textContent" name="textContent" placeholder="Paste your text here..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="fileUpload">Or upload a document:</label>
+                <input type="file" id="fileUpload" name="fileUpload" accept=".txt,.doc,.docx,.pdf">
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Check Plagiarism">
+            </div>
+            <div id="result" class="result">
+                <div class="loading">
+                    <img src="../loading-spinner.gif" alt="Loading...">
+                </div>
+                <table id="resultTable">
+                    <thead>
+                        <tr>
+                            <th>Check Type</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2023 EduAssista. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.getElementById('plagiarismForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            var formData = new FormData(this);
+            var resultDiv = document.getElementById('result');
+            var loadingDiv = document.querySelector('.loading');
+            var resultTable = document.getElementById('resultTable').getElementsByTagName('tbody')[0];
+
+            // Show loading spinner
+            loadingDiv.style.display = 'block';
+            resultTable.innerHTML = ''; // Clear previous results
+
+            fetch('../plagiarism_check.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    loadingDiv.style.display = 'none'; // Hide loading spinner
+                    if (data.success) {
+                        resultTable.innerHTML = `
+                        <tr>
+                            <td>Plagiarism Check</td>
+                            <td>${data.message}</td>
+                        </tr>
+                    `;
+                    } else {
+                        resultTable.innerHTML = `
+                        <tr>
+                            <td>Error</td>
+                            <td>${data.message}</td>
+                        </tr>
+                    `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    loadingDiv.style.display = 'none'; // Hide loading spinner
+                    resultTable.innerHTML = `
+                    <tr>
+                        <td>Error</td>
+                        <td>There was an error checking the plagiarism.</td>
+                    </tr>
+                `;
+                });
+        });
+    </script>
+</body>
+
+</html>

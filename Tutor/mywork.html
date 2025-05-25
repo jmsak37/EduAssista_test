@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>My Work</title>
+    <link rel="stylesheet" href="style4.css">
+    <style>
+        /* General layout */
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        /* Table styling */
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        
+        table,
+        th,
+        td {
+            border: 1px solid #ddd;
+        }
+        
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        /* Progress circle styles */
+        
+        .progress-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 50px;
+            font-weight: bold;
+            color: black;
+            /* Changed from white to black */
+        }
+        
+        .uncompleted {
+            background: linear-gradient(90deg, #f39c12 50%, #ddd 50%);
+        }
+        
+        .completed {
+            background: #27ae60;
+        }
+        /* Clickable order name styling */
+        
+        .order-name a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        .order-name a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Fetch work data from mywork.php.
+            fetch('mywork.php')
+                .then(response => response.json())
+                .then(data => {
+                    let progress = data.progress || [];
+                    let completed = data.completed || [];
+                    // Add a property "workType": "progress" or "completed" to each order.
+                    progress.forEach(order => {
+                        order.workType = "progress";
+                    });
+                    completed.forEach(order => {
+                        order.workType = "completed";
+                    });
+                    // Merge both arrays.
+                    let orders = progress.concat(completed);
+                    displayWorkTable(orders);
+                })
+                .catch(error => {
+                    console.error("Error fetching work data:", error);
+                    document.getElementById("workContainer").innerHTML = "<p>Error loading your work.</p>";
+                });
+
+            function displayWorkTable(orders) {
+                let html = "<table><thead><tr>" +
+                    "<th>Order ID</th>" +
+                    "<th>Client ID</th>" +
+                    "<th>Subject</th>" +
+                    "<th>Name</th>" +
+                    "<th>Deadline</th>" +
+                    "<th>Progress</th>" +
+                    "</tr></thead><tbody>";
+                orders.forEach(order => {
+                    let progressCircle = "";
+                    if (order.workType === "progress") {
+                        progressCircle = "<div class='progress-circle uncompleted'>Uncompleted</div>";
+                    } else if (order.workType === "completed") {
+                        progressCircle = "<div class='progress-circle completed'>Completed</div>";
+                    }
+                    // The order name becomes a clickable link that opens viewtheorder.html with order_id as a parameter.
+                    let nameLink = "<span class='order-name'><a href='viewtheorder.html?order_id=" + order.order_id + "'>" + order.name + "</a></span>";
+                    html += "<tr>" +
+                        "<td>" + order.order_id + "</td>" +
+                        "<td>" + order.client_id + "</td>" +
+                        "<td>" + order.subject + "</td>" +
+                        "<td>" + nameLink + "</td>" +
+                        "<td>" + order.deadline + "</td>" +
+                        "<td>" + progressCircle + "</td>" +
+                        "</tr>";
+                });
+                html += "</tbody></table>";
+                document.getElementById("workContainer").innerHTML = html;
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <h2>My Work</h2>
+    <div class="container" id="workContainer">
+        <!-- The work table will be rendered here -->
+    </div>
+</body>
+
+</html>

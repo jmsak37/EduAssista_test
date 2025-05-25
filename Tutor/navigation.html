@@ -1,0 +1,25 @@
+<?php
+// Start session only if it is not already started
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+?>
+    <nav class="navbar">
+        <a href="tutor_index.html">Dashboard</a>
+        <a href="undone.html">UNDONE ORDER</a>
+        <a href="mywork.html">My Work</a>
+        <a href="earning.html">Earnings</a>
+        <a href="messages.html">Contact Support</a>
+        <a href="profile.html">profile</a>
+        <a href="../logout.php">logout</a>
+
+
+        <?php
+    // Display the first letter of the user name, or a default "P"
+    if (isset($_SESSION['user_name'])) {
+        echo strtoupper(substr($_SESSION['user_name'], 0, 1));
+    } else {
+        
+    }
+    ?>
+    </nav>

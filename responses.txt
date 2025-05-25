@@ -1,0 +1,202 @@
+hey: Hey to
+how: Our support team will get back to you shortly, Do not be offline
+help: How can I assist you
+ok: Alright!
+hello: Hello to you
+ok: Alright!
+hi: Hi to you
+ok: Alright!
+pricing: Please visit our pricing page for detailed information.
+availability: Our tutors are available 24/7 to assist you.
+tutor: You can find the list of available tutors on our Tutors page.
+submit: Please use the submission form on the website to submit your assignment.
+deadline: Make sure to set your deadline while submitting the assignment.
+refund: For refund policies, please visit our Refund Policy page.
+payment: You can make payments securely through our website using various methods 1. Mpesa , 2. ATM CARD....
+contact: You can contact us at support@example.com or call +254769089734.
+subject: We have experts in various subjects to help you.
+plagiarism: All our work is 100% original and plagiarism-free.
+revision: We offer unlimited revisions until you are satisfied.
+urgent: If it's urgent, please let us know, and we'll prioritize your request.
+delay: We apologize for any delay. Please contact support for an update.
+feedback: Your feedback is important to us. Please share it on our Feedback page.
+discount: Check our website for the latest discount offers and promotions.
+account: You can manage your account settings in the Account section.
+reset: If you forgot your password, use the 'Forgot Password' link to reset it.
+login: Ensure you are using the correct credentials to log in.
+register: You can register by clicking on the 'Sign Up' button on the homepage.
+policy: Please review our Terms of Service and Privacy Policy on our website.
+guide: Check the Guides section for help on how to use the platform.
+support: Our support team is here to assist you 24/7.
+cancel: To cancel an order, please contact support as soon as possible.
+progress: You can track the progress of your order from the Orders section.
+rating: Please rate your experience with our services in the Review section.
+thank you: You are welcome! We are here to help.
+order: You can place a new order by clicking the 'Order Now' button.
+price: Prices vary based on the type of service and deadline.
+modify: You can modify your order details within 30 minutes of submission.
+course: Let us know the course details, and we will find the best tutor for you.
+chat: Use the live chat feature to connect with a tutor instantly.
+response: We try to respond within a few minutes.
+privacy: Your privacy is important to us. Please read our Privacy Policy.
+session: Schedule a session with a tutor by filling out the appointment form.
+syllabus: You can upload your syllabus on the platform for reference.
+error: If you encounter an error, please contact support immediately.
+document: Please ensure your documents are in PDF or Word format.
+download: You can download completed assignments from your dashboard.
+upload: Use the upload button in the Orders section to submit your files.
+extension: If you need an extension, please request it through support.
+email: Make sure your email is up-to-date to receive notifications.
+reminder: You can set reminders for deadlines in the Dashboard.
+revision policy: Check our revision policy on the Terms page.
+materials: You can upload additional materials for the tutor in the Orders section.
+how to: Visit the Help Center for guides on using the platform.
+completed: You will receive a notification once your work is completed.
+time zone: Our system automatically adjusts to your local time zone.
+confirmation: You will receive a confirmation email after placing an order.
+guarantee: We guarantee satisfaction or your money back.
+certificate: We provide a certificate of completion upon request.
+chat history: You can view your chat history in the Messages section.
+priority: Orders can be marked as high-priority for faster delivery.
+trial: Contact support to inquire about trial sessions.
+subjects covered: We cover a wide range of subjects, from math to humanities.
+dispute: If you have a dispute, please contact our Dispute Resolution team.
+secure: Our platform uses SSL encryption to keep your data secure.
+plagiarism check: All submissions go through a plagiarism check before delivery.
+team: Our team consists of experts with advanced degrees.
+feedback form: You can fill out the feedback form to share your thoughts.
+portfolio: You can view the tutor's portfolio before selecting them.
+tip: You can leave a tip for the tutor after the session.
+draft: You will receive a draft version before the final submission.
+learning: Our platform offers a variety of learning resources.
+follow up: Our team will follow up within 24 hours.
+session recording: You can request a recording of your tutoring session.
+availability check: Use the calendar to check tutor availability.
+overdue: For overdue assignments, contact support immediately.
+feedback response: Our team takes all feedback seriously and will respond accordingly.
+project: Let us know the scope of your project for a customized quote.
+invoice: Your invoice will be generated upon order confirmation.
+waiting time: The estimated waiting time is 5-10 minutes.
+resources: Access our library of resources to enhance your learning.
+mobile app: Our mobile app is available for both Android and iOS devices.
+features: Explore the latest features on our platform by visiting the Features page.
+compatibility: Our platform is compatible with most modern browsers.
+credits: You can earn credits by referring friends or completing surveys.
+support hours: Our support team is available 24/7 to assist you.
+technical issue: For technical issues, please clear your browser cache or try a different browser.
+university: We support students from various universities worldwide.
+mentor: Connect with a mentor for career guidance and advice.
+profile: You can update your profile information in the Account Settings.
+reassign: You can request to reassign your tutor through support.
+language: Our tutors are proficient in multiple languages.
+translation: We offer translation services for various languages.
+formatting: We follow standard formatting guidelines unless specified otherwise.
+acknowledgment: You will receive an acknowledgment email after any submission.
+bulk orders: For bulk orders, please contact our Sales team for discounts.
+invoice request: To request an invoice, contact our Billing department.
+certification: Our tutors are certified professionals in their respective fields.
+transfer: To transfer your session to another tutor, contact support.
+learning path: Create a personalized learning path by consulting with our advisors.
+calculator: Use our online calculator to estimate your order cost.
+examples: View sample works to understand the quality we offer.
+speed: Fast turnaround times are available for urgent requests.
+data privacy: Your data privacy is our priority. Refer to our Privacy Policy.
+reconnect: If you get disconnected, try refreshing your browser.
+payment confirmation: You will receive a payment confirmation via email.
+receipt: Receipts are available for download in your Account section.
+group study: Organize group study sessions with our collaborative tools.
+FAQ: Visit our FAQ section for quick answers to common questions.
+miscommunication: If there was a miscommunication, let us know immediately.
+timezone: Specify your timezone for better scheduling of sessions.
+file type: Accepted file types include .doc, .pdf, .xls, and more.
+security: All data is encrypted to protect your information.
+integration: We integrate with various learning management systems.
+API access: For API access, contact our developer support team.
+terms: Review our Terms of Service to understand your rights and responsibilities.
+new user: Welcome! Check our tutorials to get started.
+returning user: Welcome back! We’re glad to see you again.
+verify: Please verify your email address to activate your account.
+testimonial: Read testimonials from our satisfied customers.
+auto-save: Your progress is auto-saved every few minutes.
+session length: The standard session length is 1 hour, extendable upon request.
+complaint: To file a complaint, contact our Customer Care team.
+unavailable: If a tutor is unavailable, you will be notified promptly.
+link sharing: Please share relevant links to help us understand your request.
+add-ons: Customize your order with our add-ons and extras.
+session feedback: Provide feedback after each session to help us improve.
+backup: Make sure to keep backups of all your important documents.
+e-book: Our e-book collection is available for subscribed members.
+partnership: For partnership inquiries, reach out to our Business Development team.
+review: You can review your tutor after each session.
+accessibility: We offer accessibility features for students with disabilities.
+update: Stay updated with the latest news and features.
+contract: Our terms are governed by our service contract, available online.
+subscription options: We offer several subscription plans. Please choose one to learn more: Basic Plan, Premium Plan, Enterprise Plan
+  1. Basic Plan
+  2. Premium Plan
+  3. Enterprise Plan
+basic plan: The Basic Plan includes access to all courses with limited downloads. Would you like to know the price? (yes/no)
+premium plan: The Premium Plan includes access to all courses, unlimited downloads, and one-on-one tutor sessions. Would you like to know the price? (yes/no)
+enterprise plan: The Enterprise Plan includes all Premium Plan features plus group sessions and access to exclusive content. Would you like to know the price? (yes/no)
+price yes: For the Basic Plan, the price is $29/month. For the Premium Plan, the price is $59/month. For the Enterprise Plan, contact us for pricing.
+price no: Alright, feel free to ask if you need more information about our plans.
+order help: Would you like to know how to place an order or how to modify an existing order? , Place an order, Modify an order
+  1. Place an order
+  2. Modify an order
+place an order: To place an order, visit our Order Now page, select the type of service, fill in the details, and submit your request. Would you like a step-by-step guide? (yes/no)
+modify an order: To modify an existing order, go to your Dashboard, select the order, and click on 'Modify Order'. Would you like more details? (yes/no)
+yes guide: Here is a step-by-step guide on how to place an order: 1) Visit Order Now page, 2) Select service type, 3) Provide details, 4) Review, 5) Submit.
+yes details: You can change the deadline, add instructions, or request a different tutor. Click 'Save Changes' to update your order.
+cancel service: Are you sure you want to cancel the service? (yes/no)
+cancel service yes: Your service has been canceled. A confirmation email will be sent shortly.
+cancel service no: No changes have been made to your service.
+payment method: Which payment method would you like to use? Credit/Debit Card, PayPal, Bank Transfer
+  1. Credit/Debit Card
+  2. PayPal
+  3. Bank Transfer
+credit/debit card: You can pay securely with any major credit or debit card. Would you like to proceed? (yes/no)
+paypal: You can use your PayPal account to make a payment. Would you like to proceed? (yes/no)
+bank transfer: Bank transfer details will be provided upon request. Would you like to receive the details? (yes/no)
+order status: Would you like to check the status of a specific order or view all orders?, Specific Order, iew All Orders
+  1. Specific Order
+  2. View All Orders
+specific order: Please provide the Order ID to check the status.
+view all orders: Go to the Dashboard and click on 'Orders' to view all your orders.
+feedback options: We appreciate your feedback. Would you like to leave feedback on: A recent session, Overall experience
+  1. A recent session
+  2. Overall experience
+recent session: Please go to the 'My Sessions' section and select the session to leave your feedback.
+overall experience: You can leave feedback on our Feedback page. Your input helps us improve!
+session booking: Would you like to book a session with a tutor now? , Yes, No
+  1. Yes
+  2. No
+yes: Please choose a subject and preferred tutor to book a session.
+no: Alright, feel free to reach out when you are ready to book.
+write: Please provide more information on what to write about
+1: provide more information on what to do with 1
+maths: please provide the mathematics proble to be solved
+how are you: I am okey what about you?
+assistance: provide more information on what assistance are you seeking
+yooh: yes, how are you today
+bye: see you
+how are you: Fine and you?
+37480901: please do not share personal information
+fine: Great, how do you want me to assist you today
+1+1: =2
+1+1: =2
+1+1: =2
+i want to ask question: ask
+speak to supot: go on
+how many minutes: yes i am
+1-1-1-1: how
+question please: whats new
+questions: hello
+question: how is you
+more questions: mambo
+how know: aaii
+wewe: how was you day
+book: bad
+why: why
+morning: gddo
+you: mambo
+mmbo: poa

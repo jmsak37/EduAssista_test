@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Clarification Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        table,
+        th,
+        td {
+            border: 1px solid #ccc;
+        }
+        
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        button {
+            padding: 5px 10px;
+            margin: 2px;
+        }
+        
+        a {
+            color: blue;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        /* Modal styling */
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            width: 400px;
+            border-radius: 5px;
+            position: relative;
+        }
+        
+        .close {
+            position: absolute;
+            right: 10px;
+            top: 5px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        
+        .notification {
+            background-color: #dff0d8;
+            color: #3c763d;
+            padding: 10px;
+            border: 1px solid #d6e9c6;
+            margin-bottom: 20px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Clarification Management</h1>
+    <div id="notification" class="notification"></div>
+    <table id="clarificationTable">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Client ID</th>
+                <th>Tutor ID</th>
+                <th>Subject</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Instructions</th>
+                <th>Deadline</th>
+                <th>Price</th>
+                <th>Pages</th>
+                <th>Status</th>
+                <th>Created At</th>
+                <th>Updated At</th>
+                <th>Clarification</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rows will be populated by JavaScript -->
+        </tbody>
+    </table>
+
+    <!-- Update Modal for editing tutor, deadline, price, pages, status -->
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeUpdateModal()">&times;</span>
+            <h3>Update Clarification</h3>
+            <form id="updateForm">
+                <input type="hidden" id="update_order_id" name="order_id">
+                <label for="update_tutor">Tutor:</label>
+                <select id="update_tutor" name="tutor_id">
+                    <!-- Tutor options loaded dynamically -->
+                </select><br><br>
+                <label for="update_deadline">Deadline:</label>
+                <input type="datetime-local" id="update_deadline" name="deadline"><br><br>
+                <label for="update_price">Price:</label>
+                <input type="number" id="update_price" name="price" step="0.01"><br><br>
+                <label for="update_pages">Pages:</label>
+                <input type="number" id="update_pages" name="number_of_pages"><br><br>
+                <label for="update_status">Status:</label>
+                <input type="text" id="update_status" name="status"><br><br>
+                <button type="button" onclick="submitUpdate()">Update</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Document Modal for selecting document view option -->
+    <div id="documentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeDocumentModal()">&times;</span>
+            <h3>Select Document to View</h3>
+            <div id="docOptions">
+                <!-- Options will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let clarifications = [];
+        let selectedOrder = null; // Holds the currently selected order
+
+        function showNotification(message) {
+            const notificationDiv = document.getElementById('notification');
+            notificationDiv.textContent = message;
+            notificationDiv.style.display = 'block';
+            setTimeout(() => {
+                notificationDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function loadClarifications() {
+            fetch('clarification.php?action=list')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        clarifications = data.clarifications;
+                        populateTable();
+                    } else {
+                        showNotification("Error: " + data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showNotification("Error loading clarifications");
+                });
+        }
+
+        function populateTable() {
+            const tbody = document.querySelector('#clarificationTable tbody');
+            tbody.innerHTML = "";
+            clarifications.forEach(order => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+          <td>${order.order_id}</td>
+          <td>${order.client_id}</td>
+          <td>${order.tutor_id || ''}</td>
+          <td>${order.subject}</td>
+          <td><a onclick="openDocumentModal('${order.order_id}', '${encodeURIComponent(order.name)}', '${encodeURIComponent(order.document_upload_link)}', '${encodeURIComponent(order.answer_files)}', '${encodeURIComponent(order.explanation_files)}')">${order.name}</a></td>
+          <td>${order.description}</td>
+          <td>${order.instructions}</td>
+          <td>${order.deadline}</td>
+          <td>${order.price}</td>
+          <td>${order.number_of_pages}</td>
+          <td>${order.status}</td>
+          <td>${order.created_at}</td>
+          <td>${order.updated_at}</td>
+          <td>${order.clarification || ''}</td>
+          <td>
+            <button onclick="openUpdateModal('${order.order_id}')">Edit</button>
+            <button onclick="reassignOrder('${order.order_id}')">Reassign</button>
+          </td>
+        `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openUpdateModal(order_id) {
+            selectedOrder = clarifications.find(o => o.order_id === order_id);
+            if (!selectedOrder) return;
+            document.getElementById('update_order_id').value = selectedOrder.order_id;
+            document.getElementById('update_deadline').value = selectedOrder.deadline ? selectedOrder.deadline.substring(0, 16) : "";
+            document.getElementById('update_price').value = selectedOrder.price || "";
+            document.getElementById('update_pages').value = selectedOrder.number_of_pages || "";
+            document.getElementById('update_status').value = selectedOrder.status || "";
+            loadTutors();
+            document.getElementById('updateModal').style.display = 'block';
+        }
+
+        function closeUpdateModal() {
+            document.getElementById('updateModal').style.display = 'none';
+        }
+
+        function loadTutors() {
+            fetch('clarification.php?action=listTutors')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const select = document.getElementById('update_tutor');
+                        select.innerHTML = '<option value="">Select Tutor</option>';
+                        data.tutors.forEach(tutor => {
+                            select.innerHTML += `<option value="${tutor.UserID}">${tutor.UserName}</option>`;
+                        });
+                        if (selectedOrder && selectedOrder.tutor_id) {
+                            select.value = selectedOrder.tutor_id;
+                        }
+                    } else {
+                        showNotification("Error loading tutors: " + data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showNotification("Error loading tutors");
+                });
+        }
+
+        function submitUpdate() {
+            const formData = new FormData(document.getElementById('updateForm'));
+            fetch('clarification.php?action=update', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification("Order updated successfully!");
+                        closeUpdateModal();
+                        loadClarifications();
+                    } else {
+                        showNotification("Error: " + data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showNotification("Error updating order");
+                });
+        }
+
+        function reassignOrder(order_id) {
+            if (confirm("Are you sure you want to reassign this order?")) {
+                fetch('clarification.php?action=reassign&order_id=' + order_id)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification("Order reassigned successfully!");
+                            loadClarifications();
+                        } else {
+                            showNotification("Error: " + data.message);
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        showNotification("Error reassigning order");
+                    });
+            }
+        }
+
+        // Document Modal functions
+        function openDocumentModal(order_id, name, document_upload_link, answer_files, explanation_files) {
+            // Decode URL-encoded parameters
+            selectedOrder = {
+                order_id: order_id,
+                name: decodeURIComponent(name),
+                document_upload_link: decodeURIComponent(document_upload_link),
+                answer_files: decodeURIComponent(answer_files),
+                explanation_files: decodeURIComponent(explanation_files)
+            };
+            const modal = document.getElementById('documentModal');
+            const optionsDiv = document.getElementById('docOptions');
+            optionsDiv.innerHTML = "";
+
+            // Only show options if the corresponding file field is not empty.
+            if (selectedOrder.document_upload_link) {
+                optionsDiv.innerHTML += `<button onclick="viewDocument('uploaded')">Documents Uploaded</button><br>`;
+            }
+            if (selectedOrder.answer_files) {
+                optionsDiv.innerHTML += `<button onclick="viewDocument('answers')">Answers Documents</button><br>`;
+            }
+            if (selectedOrder.explanation_files) {
+                optionsDiv.innerHTML += `<button onclick="viewDocument('explanation')">Explanation Documents</button><br>`;
+            }
+            optionsDiv.innerHTML += `<button onclick="viewDocument('all')">All Documents</button>`;
+            modal.style.display = 'block';
+        }
+
+        function closeDocumentModal() {
+            document.getElementById('documentModal').style.display = 'none';
+        }
+
+        function viewDocument(type) {
+            // Open the preview page in the original tab.
+            window.location.href = 'preview_document.php?type=' + type + '&order_id=' + selectedOrder.order_id;
+            closeDocumentModal();
+        }
+
+        window.onload = loadClarifications;
+    </script>
+</body>
+
+</html>

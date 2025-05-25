@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skip Order</title>
+    <link rel="stylesheet" href="style4.css">
+    <style>
+        /* Overall page styling */
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #eef2f7;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .skip-container {
+            max-width: 800px;
+            margin: 30px auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        /* Order details section */
+        
+        .order-details-container {
+            margin-bottom: 30px;
+        }
+        
+        .order-details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .order-details-table th,
+        .order-details-table td {
+            border: 1px solid #ddd;
+            padding: 10px 15px;
+            text-align: left;
+        }
+        
+        .order-details-table th {
+            background-color: #007bff;
+            color: #fff;
+        }
+        
+        .order-details-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .document-container {
+            margin-top: 15px;
+        }
+        
+        .document-container h3 {
+            margin-bottom: 10px;
+            color: #007bff;
+        }
+        /* Skip form styling */
+        
+        .skip-form-container {
+            margin-top: 20px;
+        }
+        
+        .question-box {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: #f7f9fc;
+            margin-bottom: 20px;
+        }
+        
+        .question-box label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+            color: #444;
+        }
+        
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .options label {
+            flex: 1 1 45%;
+            background-color: #e8f0fe;
+            padding: 5px 10px;
+            border-radius: 3px;
+            border: 1px solid #c6dafc;
+            cursor: pointer;
+        }
+        
+        .options input[type="checkbox"] {
+            margin-right: 5px;
+        }
+        
+        .options input[type="text"] {
+            margin-top: 5px;
+            padding: 5px;
+            width: 95%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        /* Hide "Other" text inputs by default */
+        
+        .other-text {
+            display: none;
+            margin-top: 8px;
+        }
+        /* Submit Button */
+        
+        #skipSubmitBtn {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        #skipSubmitBtn:hover {
+            background-color: #218838;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // First, try to get order_id from URL parameters.
+            let urlParams = new URLSearchParams(window.location.search);
+            let order_id = urlParams.get('order_id');
+            console.log("Order ID from URL:", order_id);
+
+            // If not in URL, try to get it from opener’s order details table.
+            if (!order_id && window.opener) {
+                let orderIdElement = window.opener.document.querySelector("#orderDetails table tbody tr:first-child td");
+                if (orderIdElement) {
+                    order_id = orderIdElement.innerText.trim();
+                    console.log("Order ID from opener:", order_id);
+                }
+            }
+
+            // If still not found, alert and close.
+            if (!order_id) {
+                alert("Order details not found. Closing window.");
+                window.close();
+                return;
+            }
+
+            // Use a relative path to fetch order details.
+            fetch("./getOrderDetails.php?order_id=" + order_id)
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Fetched order data:", data);
+                    // Check if valid order data returned (expect data.order_id to be set)
+                    if (!data.order_id) {
+                        document.getElementById("orderDetails").innerHTML = "<p style='color:red;'>Order details not found.</p>";
+                        setTimeout(() => {
+                            window.close();
+                        }, 2500);
+                        return;
+                    }
+                    let calculatedPrice = data.number_of_pages * 2;
+                    let tableHTML = "<table class='order-details-table'><tbody>" +
+                        "<tr><th>Order ID</th><td>" + data.order_id + "</td></tr>" +
+                        "<tr><th>Client ID</th><td>" + data.client_id + "</td></tr>" +
+                        "<tr><th>Subject</th><td>" + data.subject + "</td></tr>" +
+                        "<tr><th>Name</th><td>" + data.name + "</td></tr>" +
+                        "<tr><th>Description</th><td>" + data.description + "</td></tr>" +
+                        "<tr><th>Instructions</th><td>" + data.instructions + "</td></tr>" +
+                        "<tr><th>Deadline</th><td>" + data.deadline + "</td></tr>" +
+                        "<tr><th>Price</th><td>$" + calculatedPrice + "</td></tr>" +
+                        "<tr><th>Number of Pages</th><td>" + data.number_of_pages + "</td></tr>" +
+                        "</tbody></table>";
+                    document.getElementById("orderDetails").innerHTML = tableHTML;
+                    // Store order ID in hidden input.
+                    document.getElementById("orderIdInput").value = data.order_id;
+
+                    // If a document upload link exists, display it.
+                    if (data.document_upload_link && data.document_upload_link.trim() !== "") {
+                        let fullDocPath = "../client/" + data.document_upload_link;
+                        let docHTML = "<div class='document-container'>" +
+                            "<h3>Document Download Links</h3>" +
+                            "<iframe src='" + fullDocPath + "' width='100%' height='500px' style='border:1px solid #ccc;'></iframe>" +
+                            "<br><a href='" + fullDocPath + "' target='_blank'>Download Document</a>" +
+                            "</div>";
+                        document.getElementById("orderDetails").innerHTML += docHTML;
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching order details:", error);
+                    document.getElementById("orderDetails").innerHTML = "<p style='color:red;'>Error loading order details.</p>";
+                    setTimeout(() => {
+                        window.close();
+                    }, 2500);
+                });
+
+            // Set up toggling for each "Other" option.
+            function setupOtherToggle(qName) {
+                let otherCheckbox = document.querySelector('input[name="' + qName + '"][value="Other"]');
+                let otherInput = document.getElementById(qName + "_other");
+                if (otherCheckbox && otherInput) {
+                    otherCheckbox.addEventListener("change", function() {
+                        otherInput.style.display = this.checked ? "block" : "none";
+                    });
+                }
+            }
+            ["q1", "q2", "q3", "q4", "q5"].forEach(setupOtherToggle);
+
+            // Update the visibility of the "Submit Reason" button.
+            function updateSkipSubmitVisibility() {
+                let skipForm = document.getElementById("skipForm");
+                let submitBtn = document.getElementById("skipSubmitBtn");
+                let visible = false;
+                // Check if any checkbox is checked.
+                skipForm.querySelectorAll("input[type='checkbox']").forEach(chk => {
+                    if (chk.checked) visible = true;
+                });
+                // Check if any text input (including other-texts) is non-empty.
+                skipForm.querySelectorAll("input[type='text']").forEach(txt => {
+                    if (txt.value.trim() !== "") visible = true;
+                });
+                submitBtn.style.display = visible ? "block" : "none";
+            }
+            let skipFormEl = document.getElementById("skipForm");
+            skipFormEl.addEventListener("change", updateSkipSubmitVisibility);
+            skipFormEl.addEventListener("input", updateSkipSubmitVisibility);
+
+            // Handle form submission.
+            document.getElementById("skipForm").addEventListener("submit", function(e) {
+                e.preventDefault();
+                // Validate that for any checked "Other" option the corresponding text is filled.
+                function validateOther(qName, message) {
+                    let otherChk = document.querySelector('input[name="' + qName + '"][value="Other"]');
+                    if (otherChk && otherChk.checked) {
+                        let otherTxt = document.getElementById(qName + "_other");
+                        if (otherTxt.value.trim() === "") {
+                            alert(message);
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+                if (!validateOther("q1", "Please specify the 'Other' reason for question 1.")) return;
+                if (!validateOther("q2", "Please specify the 'Other' subject for question 2.")) return;
+                if (!validateOther("q3", "Please specify the 'Other' difficulty reason for question 3.")) return;
+                if (!validateOther("q4", "Please specify the 'Other' correct subject for question 4.")) return;
+                if (!validateOther("q5", "Please specify the 'Other' additional instructions for question 5.")) return;
+
+                // Collect responses.
+                let responses = {};
+                ["q1", "q2", "q3", "q4", "q5"].forEach(q => {
+                    responses[q] = [];
+                    document.querySelectorAll('input[name="' + q + '"]:checked').forEach(chk => {
+                        responses[q].push(chk.value);
+                    });
+                    responses[q + "_other"] = document.getElementById(q + "_other").value.trim();
+                });
+                responses.q6 = document.getElementById("q6_text").value.trim();
+
+                // Build payload with order ID.
+                let payload = {
+                    order: {
+                        order_id: document.getElementById("orderIdInput").value
+                    },
+                    skip_responses: responses
+                };
+
+                // Submit payload to skipOrder.php.
+                fetch('skipOrder.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            // If successful, and if an opener exists, navigate it back two pages, then close.
+                            if (window.opener) {
+                                window.opener.history.go(-2);
+                            }
+                            window.close();
+                        } else {
+                            alert("Error skipping order: " + result.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error submitting skip form:", error);
+                        alert("Error submitting skip form.");
+                    });
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <div class="skip-container">
+        <h2>Skip Order</h2>
+        <!-- Order Details Section -->
+        <div class="order-details-container" id="orderDetails">
+            <!-- Fetched order details will be inserted here -->
+        </div>
+        <!-- Hidden input to store Order ID -->
+        <input type="hidden" id="orderIdInput" name="order_id">
+        <!-- Skip Form Section -->
+        <div class="skip-form-container">
+            <form id="skipForm">
+                <!-- Question 1 -->
+                <div class="question-box">
+                    <label>1. Why do you want to skip this question?</label>
+                    <div class="options">
+                        <label><input type="checkbox" name="q1" value="Unwanted subject"> Unwanted subject</label>
+                        <label><input type="checkbox" name="q1" value="Question difficulty"> Question difficulty</label>
+                        <label><input type="checkbox" name="q1" value="Wrong subject"> Wrong subject</label>
+                        <label><input type="checkbox" name="q1" value="Lack of instructions"> Lack of instructions</label>
+                        <label><input type="checkbox" name="q1" value="Other"> Other</label>
+                    </div>
+                    <input type="text" id="q1_other" class="other-text" placeholder="Other reason for Q1">
+                </div>
+                <!-- Question 2 -->
+                <div class="question-box">
+                    <label>2. If the subject is unwanted, which subject do you prefer?</label>
+                    <div class="options">
+                        <label><input type="checkbox" name="q2" value="Mathematics"> Mathematics</label>
+                        <label><input type="checkbox" name="q2" value="Science"> Science</label>
+                        <label><input type="checkbox" name="q2" value="History"> History</label>
+                        <label><input type="checkbox" name="q2" value="Literature"> Literature</label>
+                        <label><input type="checkbox" name="q2" value="Computer Science"> Computer Science</label>
+                        <label><input type="checkbox" name="q2" value="Other"> Other</label>
+                    </div>
+                    <input type="text" id="q2_other" class="other-text" placeholder="Other subject">
+                </div>
+                <!-- Question 3 -->
+                <div class="question-box">
+                    <label>3. If the question is too difficult, what makes it hard for you?</label>
+                    <div class="options">
+                        <label><input type="checkbox" name="q3" value="I haven't learned this topic yet"> I haven't learned this topic yet</label>
+                        <label><input type="checkbox" name="q3" value="The wording is unclear"> The wording is unclear</label>
+                        <label><input type="checkbox" name="q3" value="Too advanced for my level"> Too advanced for my level</label>
+                        <label><input type="checkbox" name="q3" value="Other"> Other</label>
+                    </div>
+                    <input type="text" id="q3_other" class="other-text" placeholder="Other difficulty reason">
+                </div>
+                <!-- Question 4 -->
+                <div class="question-box">
+                    <label>4. If the subject is wrong, what is the correct subject for this question?</label>
+                    <div class="options">
+                        <label><input type="checkbox" name="q4" value="Mathematics"> Mathematics</label>
+                        <label><input type="checkbox" name="q4" value="Science"> Science</label>
+                        <label><input type="checkbox" name="q4" value="History"> History</label>
+                        <label><input type="checkbox" name="q4" value="Literature"> Literature</label>
+                        <label><input type="checkbox" name="q4" value="Computer Science"> Computer Science</label>
+                        <label><input type="checkbox" name="q4" value="Other"> Other</label>
+                    </div>
+                    <input type="text" id="q4_other" class="other-text" placeholder="Other correct subject">
+                </div>
+                <!-- Question 5 -->
+                <div class="question-box">
+                    <label>5. If there is a lack of instructions, what additional information do you need?</label>
+                    <div class="options">
+                        <label><input type="checkbox" name="q5" value="Explanation of key terms"> Explanation of key terms</label>
+                        <label><input type="checkbox" name="q5" value="Step-by-step guidance"> Step-by-step guidance</label>
+                        <label><input type="checkbox" name="q5" value="Example similar to the question"> Example similar to the question</label>
+                        <label><input type="checkbox" name="q5" value="Other"> Other</label>
+                    </div>
+                    <input type="text" id="q5_other" class="other-text" placeholder="Other instructions needed">
+                </div>
+                <!-- Question 6 -->
+                <div class="question-box">
+                    <label>6. If you selected "Other" for any above, please describe your reason for skipping:</label>
+                    <input type="text" id="q6_text" placeholder="Describe your reason (optional)">
+                </div>
+                <button type="submit" id="skipSubmitBtn">Submit Reason</button>
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

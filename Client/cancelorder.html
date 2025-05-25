@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order Quality Review Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        #error-msg {
+            color: red;
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        textarea {
+            resize: vertical;
+        }
+        
+        .checkbox-group {
+            margin-bottom: 10px;
+        }
+        
+        .checkbox-group label {
+            font-weight: normal;
+            margin-right: 10px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .submit-btn {
+            background-color: #28a745;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            display: none;
+        }
+        
+        .add-file-btn {
+            background-color: #007bff;
+            color: #fff;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        /* Modal overlay for thank you message */
+        
+        #thankyou-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        
+        #thankyou-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        #thankyou-content h2 {
+            margin-top: 0;
+            color: #28a745;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Order Quality Review Form</h2>
+        <!-- Error Message Container -->
+        <div id="error-msg"></div>
+        <form id="reviewForm" enctype="multipart/form-data">
+            <!-- Hidden order_id (assumed to be passed as URL parameter) -->
+            <input type="hidden" name="order_id" id="order_id" value="">
+
+            <!-- Issues Identified -->
+            <div class="form-group">
+                <label>Issues Identified (Check all that apply):</label>
+                <div class="checkbox-group" id="issues-group">
+                    <label><input type="checkbox" name="issues[]" value="Instructions were not followed"> Instructions were not followed</label>
+                    <label><input type="checkbox" name="issues[]" value="Work contains significant errors"> Work contains significant errors</label>
+                    <label><input type="checkbox" name="issues[]" value="Poor grammar and spelling"> Poor grammar and spelling</label>
+                    <label><input type="checkbox" name="issues[]" value="Plagiarism detected"> Plagiarism detected</label>
+                    <label><input type="checkbox" name="issues[]" value="Work is incomplete"> Work is incomplete</label>
+                    <label><input type="checkbox" name="issues[]" value="Formatting issues"> Formatting issues</label>
+                    <label><input type="checkbox" name="issues[]" value="Wrong subject or topic covered"> Wrong subject or topic covered</label>
+                    <label><input type="checkbox" name="issues[]" value="Deadline was missed"> Deadline was missed</label>
+                    <label><input type="checkbox" name="issues[]" value="Poor explanation or lack of clarity"> Poor explanation or lack of clarity</label>
+                    <label><input type="checkbox" name="issues[]" value="Low-quality or irrelevant content"> Low-quality or irrelevant content</label>
+                    <label>
+            <input type="checkbox" name="issues[]" value="Other" id="issues_other_chk">
+            Other
+          </label>
+                    <input type="text" name="issues_other_detail" id="issues_other_detail" placeholder="Please specify other issues" class="hidden">
+                </div>
+            </div>
+
+            <!-- Additional Details (Optional) -->
+            <div class="form-group">
+                <label for="additional_details">Additional Details (optional):</label>
+                <textarea name="additional_details" id="additional_details" rows="4" placeholder="Provide specific details about the issue and what was expected"></textarea>
+            </div>
+
+            <!-- Supporting Files -->
+            <div class="form-group" id="support-files-group">
+                <label for="support_files">Supporting Files (if any):</label>
+                <div class="file-input-group">
+                    <input type="file" name="support_files[]" id="support_files">
+                </div>
+                <button type="button" class="add-file-btn" id="addFileBtn">Add Another Document</button>
+            </div>
+
+            <!-- Preferred Resolution -->
+            <div class="form-group">
+                <label>Preferred Resolution:</label>
+                <div class="checkbox-group" id="resolution-group">
+                    <label><input type="checkbox" name="resolution[]" value="Revision by the same tutor"> Revision by the same tutor</label>
+                    <label><input type="checkbox" name="resolution[]" value="Assign a different tutor"> Assign a different tutor</label>
+                    <label><input type="checkbox" name="resolution[]" value="Partial refund"> Partial refund</label>
+                    <label><input type="checkbox" name="resolution[]" value="Full refund"> Full refund</label>
+                    <label>
+            <input type="checkbox" name="resolution[]" value="Other" id="resolution_other_chk">
+            Other
+          </label>
+                    <input type="text" name="resolution_other_detail" id="resolution_other_detail" placeholder="Please specify other resolution" class="hidden">
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">Submit Review</button>
+        </form>
+    </div>
+
+    <!-- Modal Overlay for Thank You Message -->
+    <div id="thankyou-modal">
+        <div id="thankyou-content">
+            <h2>Thank you!</h2>
+            <p>Your review has been submitted. Our support team will review your order and get back to you soon.</p>
+        </div>
+    </div>
+
+    <script>
+        // Toggle "Other" detail fields for issues and resolution
+        document.getElementById("issues_other_chk").addEventListener("change", function() {
+            document.getElementById("issues_other_detail").classList.toggle("hidden", !this.checked);
+            checkSubmitButtonVisibility();
+        });
+        document.getElementById("resolution_other_chk").addEventListener("change", function() {
+            document.getElementById("resolution_other_detail").classList.toggle("hidden", !this.checked);
+            checkSubmitButtonVisibility();
+        });
+
+        // Add another file input for supporting files
+        document.getElementById("addFileBtn").addEventListener("click", function() {
+            const container = document.getElementById("support-files-group");
+            const div = document.createElement("div");
+            div.className = "file-input-group";
+            div.innerHTML = `<input type="file" name="support_files[]">`;
+            container.insertBefore(div, this);
+        });
+
+        // Show submit button only when at least one checkbox is checked in both groups
+        function checkSubmitButtonVisibility() {
+            const issuesChecked = Array.from(document.querySelectorAll("input[name='issues[]']")).some(cb => cb.checked);
+            const resolutionChecked = Array.from(document.querySelectorAll("input[name='resolution[]']")).some(cb => cb.checked);
+            const submitBtn = document.getElementById("submitBtn");
+            if (issuesChecked && resolutionChecked) {
+                submitBtn.style.display = "inline-block";
+            } else {
+                submitBtn.style.display = "none";
+            }
+        }
+        document.querySelectorAll("input[name='issues[]']").forEach(cb => cb.addEventListener("change", checkSubmitButtonVisibility));
+        document.querySelectorAll("input[name='resolution[]']").forEach(cb => cb.addEventListener("change", checkSubmitButtonVisibility));
+
+        // Get order_id from URL and set hidden field
+        function getParameterByName(name, url = window.location.href) {
+            name = name.replace(/[\[\]]/g, '\\$&');
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+        const orderId = getParameterByName('order_id');
+        if (orderId) {
+            document.getElementById('order_id').value = orderId;
+        }
+
+        // Form submission handler
+        document.getElementById("reviewForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            // Validate "Other" details if checked
+            const issuesOtherChk = document.getElementById("issues_other_chk");
+            const issuesOtherDetail = document.getElementById("issues_other_detail").value.trim();
+            const resolutionOtherChk = document.getElementById("resolution_other_chk");
+            const resolutionOtherDetail = document.getElementById("resolution_other_detail").value.trim();
+            let error = "";
+            if (issuesOtherChk.checked && issuesOtherDetail === "") {
+                error = "Please specify details for Other in Issues Identified.";
+            }
+            if (!error && resolutionOtherChk.checked && resolutionOtherDetail === "") {
+                error = "Please specify details for Other in Preferred Resolution.";
+            }
+            if (error) {
+                document.getElementById("error-msg").innerText = error;
+                return;
+            } else {
+                document.getElementById("error-msg").innerText = "";
+            }
+
+            const form = document.getElementById("reviewForm");
+            const formData = new FormData(form);
+            fetch("cancelorder.php", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(res => {
+                    if (res.success) {
+                        document.getElementById("thankyou-modal").style.display = "block";
+                        setTimeout(() => {
+                            window.location.href = "index.html";
+                        }, 3000);
+                    } else {
+                        document.getElementById("error-msg").innerText = "Error: " + res.error;
+                    }
+                })
+                .catch(error => {
+                    console.error("Submission error:", error);
+                    document.getElementById("error-msg").innerText = "Submission error: " + error.message;
+                });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Support Chat</title>
+    <style>
+        /* Basic layout */
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            width: 80%;
+            max-width: 800px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        /* Chat header and vertical menu */
+        
+        .chat-header {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .menu-icon {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            cursor: pointer;
+            font-size: 22px;
+        }
+        
+        .menu-dropdown {
+            position: absolute;
+            top: 40px;
+            right: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            display: none;
+            z-index: 1100;
+        }
+        
+        .menu-dropdown button {
+            display: block;
+            width: 100%;
+            padding: 8px 12px;
+            background: none;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .menu-dropdown button:hover {
+            background-color: #f2f2f2;
+        }
+        
+        .action-ok {
+            margin-top: 5px;
+            padding: 8px 12px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            display: none;
+            font-size: 16px;
+        }
+        
+        .notification {
+            background-color: #dff0d8;
+            color: #3c763d;
+            padding: 10px;
+            border: 1px solid #d6e9c6;
+            margin-bottom: 15px;
+            display: none;
+            text-align: center;
+        }
+        
+        .chat-messages {
+            height: 450px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 15px;
+            background-color: #e9ecef;
+            margin-bottom: 15px;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+        
+        .chat-message {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 90%;
+            clear: both;
+            position: relative;
+        }
+        /* Unreplied messages are green; replied messages are blue */
+        
+        .unreplied-msg {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .replied-msg {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        /* Reply message display */
+        
+        .reply-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-left: 4px solid #28a745;
+            background-color: #f1fdf0;
+            font-size: 17px;
+        }
+        /* Checkbox for action mode */
+        
+        .msg-checkbox {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            transform: scale(1.5);
+            display: none;
+        }
+        /* Inline reply box styling */
+        
+        .chat-reply-box {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        
+        .chat-reply-box input {
+            width: 75%;
+            padding: 8px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        
+        .chat-reply-box button {
+            padding: 8px 12px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        /* Styled Back link */
+        
+        .back-link {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #00796b;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 3px;
+            font-size: 18px;
+            margin-top: 15px;
+        }
+        
+        .back-link:hover {
+            background-color: #005f50;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="chat-header" id="chatHeader">
+            Chat with:
+            <span class="menu-icon" id="menuIcon">&#8942;</span>
+            <div class="menu-dropdown" id="menuDropdown">
+                <button onclick="enterActionMode('delete')">Delete Message</button>
+                <button onclick="enterActionMode('edit')">Edit Message</button>
+                <button onclick="deleteWholeChat()">Delete Whole Chat</button>
+            </div>
+        </div>
+        <button class="action-ok" id="actionOkBtn" onclick="processAction()">OK</button>
+        <div class="notification" id="notification"></div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Chat messages will load here -->
+        </div>
+        <p style="text-align:center;"><a class="back-link" href="questions.html">Back to Questions</a></p>
+    </div>
+
+    <script>
+        // Global variables
+        const urlParams = new URLSearchParams(window.location.search);
+        const qid = urlParams.get('QuestionID');
+        let conversation = [];
+        let actionMode = ""; // "delete" or "edit"
+        let selectedIDs = new Set();
+        let isScrolling = false;
+
+        const menuIcon = document.getElementById('menuIcon');
+        const menuDropdown = document.getElementById('menuDropdown');
+        const actionOkBtn = document.getElementById('actionOkBtn');
+        const chatDiv = document.getElementById('chatMessages');
+
+        // Handle scrolling flag.
+        chatDiv.addEventListener('scroll', () => {
+            isScrolling = true;
+            // Clear the flag after 500ms of no scrolling.
+            clearTimeout(chatDiv.scrollTimeout);
+            chatDiv.scrollTimeout = setTimeout(() => {
+                isScrolling = false;
+            }, 500);
+        });
+
+        // Toggle menu dropdown.
+        menuIcon.addEventListener('click', () => {
+            menuDropdown.style.display = (menuDropdown.style.display === "block") ? "none" : "block";
+        });
+
+        function showNotification(message) {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.style.display = 'block';
+            setTimeout(() => {
+                notif.style.display = 'none';
+            }, 3000);
+        }
+
+        // Load conversation using chatreply.php.
+        function loadConversation() {
+            // Do not reload if a reply box is open, in action mode, or if scrolling or if a reply input is focused.
+            const activeReply = document.querySelector('.chat-reply-box[style*="block"]');
+            const focusedInput = document.activeElement.tagName === "INPUT" &&
+                document.activeElement.closest('.chat-reply-box');
+            if (activeReply || actionMode !== "" || isScrolling || focusedInput) return;
+            fetch('chatreply.php?QuestionID=' + encodeURIComponent(qid))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        conversation = data.conversation;
+                        populateChat();
+                        setChatHeader();
+                    } else {
+                        showNotification("Error: " + data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showNotification("Error loading conversation.");
+                });
+        }
+
+        // Set chat header using user details.
+        function setChatHeader() {
+            if (conversation.length === 0) return;
+            const userID = conversation[0].UserID;
+            fetch('questions.php?action=getUser&UserID=' + userID)
+                .then(response => response.json())
+                .then(data => {
+                    let headerText = "";
+                    if (data.success) {
+                        headerText = `Chat with: ${data.user.UserName} (${data.user.role})`;
+                    } else {
+                        headerText = `Chat with: ${conversation[0].Email}`;
+                    }
+                    document.getElementById('chatHeader').childNodes[0].nodeValue = headerText + " ";
+                })
+                .catch(err => {
+                    console.error(err);
+                    document.getElementById('chatHeader').childNodes[0].nodeValue = `Chat with: ${conversation[0].Email} `;
+                });
+        }
+
+        // Populate chat messages.
+        function populateChat() {
+            chatDiv.innerHTML = "";
+            conversation.forEach(msg => {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = "chat-message " + (msg.Reply.trim() === "" ? "unreplied-msg" : "replied-msg");
+                msgDiv.setAttribute("data-id", msg.QuestionID);
+
+                // Original message.
+                const origMsg = document.createElement('div');
+                origMsg.innerHTML = `<strong>QID ${msg.QuestionID}:</strong> ${msg.QuestionText} <br><small>${msg.Date}</small>`;
+                msgDiv.appendChild(origMsg);
+
+                // Display reply below if exists.
+                if (msg.Reply.trim() !== "") {
+                    const replyDiv = document.createElement('div');
+                    replyDiv.className = "reply-message";
+                    replyDiv.innerHTML = `<strong>Reply:</strong> ${msg.Reply}`;
+                    msgDiv.appendChild(replyDiv);
+                } else {
+                    // If no reply, show a Reply button.
+                    const replyBtn = document.createElement('button');
+                    replyBtn.className = "reply-btn";
+                    replyBtn.textContent = "Reply";
+                    replyBtn.onclick = () => {
+                        toggleReplyBox(msg.QuestionID);
+                    };
+                    msgDiv.appendChild(replyBtn);
+                }
+                chatDiv.appendChild(msgDiv);
+
+                // Append hidden reply box if not already present.
+                if (!document.getElementById('replyBox_' + msg.QuestionID)) {
+                    const replyBox = document.createElement('div');
+                    replyBox.id = 'replyBox_' + msg.QuestionID;
+                    replyBox.className = "chat-reply-box";
+                    replyBox.style.display = "none";
+                    replyBox.innerHTML = `<input type="text" id="replyInput_${msg.QuestionID}" placeholder="Type your reply..." />
+                                <button onclick="submitReply(${msg.QuestionID})">Send</button>`;
+                    chatDiv.appendChild(replyBox);
+                    const replyInput = replyBox.querySelector('input');
+                    replyInput.addEventListener("keydown", function(e) {
+                        if (e.key === "Enter") {
+                            submitReply(msg.QuestionID);
+                        }
+                    });
+                }
+            });
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+
+        // Toggle reply box visibility.
+        function toggleReplyBox(questionID, existingReply = "") {
+            const box = document.getElementById('replyBox_' + questionID);
+            if (box.style.display === "none" || box.style.display === "") {
+                box.style.display = "block";
+                document.getElementById('replyInput_' + questionID).value = existingReply;
+            } else {
+                box.style.display = "none";
+            }
+        }
+
+        // Submit reply for a given message.
+        function submitReply(questionID) {
+            const input = document.getElementById('replyInput_' + questionID);
+            const replyText = input.value.trim();
+            if (!replyText) return;
+            const formData = new FormData();
+            formData.append('QuestionID', questionID);
+            formData.append('Reply', replyText);
+            fetch('questions.php?action=update', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification("Reply updated successfully!");
+                        // Hide the reply box after submission.
+                        document.getElementById('replyBox_' + questionID).style.display = "none";
+                        loadConversation();
+                    } else {
+                        showNotification("Error: " + data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showNotification("Error sending reply");
+                });
+        }
+
+        // ----- Action Mode Functions (Bulk delete/edit) -----
+        function enterActionMode(mode) {
+            actionMode = mode; // "delete" or "edit"
+            selectedIDs.clear();
+            // Show checkboxes on messages (for delete mode, all; for edit mode, only those with a reply)
+            const messages = document.querySelectorAll('.chat-message');
+            messages.forEach(msgDiv => {
+                let showCB = false;
+                if (actionMode === "delete") {
+                    showCB = true;
+                } else if (actionMode === "edit") {
+                    if (msgDiv.querySelector('.reply-message')) {
+                        showCB = true;
+                    }
+                }
+                if (showCB) {
+                    let cb = msgDiv.querySelector('.msg-checkbox');
+                    if (!cb) {
+                        cb = document.createElement('input');
+                        cb.type = "checkbox";
+                        cb.className = "msg-checkbox";
+                        cb.addEventListener('change', function() {
+                            if (this.checked) {
+                                selectedIDs.add(msgDiv.getAttribute("data-id"));
+                            } else {
+                                selectedIDs.delete(msgDiv.getAttribute("data-id"));
+                            }
+                            actionOkBtn.style.display = (selectedIDs.size > 0) ? "block" : "none";
+                        });
+                        msgDiv.insertBefore(cb, msgDiv.firstChild);
+                    }
+                    cb.style.display = "block";
+                }
+            });
+            actionOkBtn.style.display = "none";
+            menuDropdown.style.display = "none";
+        }
+
+        function processAction() {
+            if (actionMode === "delete") {
+                if (selectedIDs.size === 0) {
+                    showNotification("No messages selected for deletion.");
+                    return;
+                }
+                if (confirm("Are you sure you want to delete the selected messages?")) {
+                    selectedIDs.forEach(id => {
+                        fetch('questions.php?action=delete&QuestionID=' + id)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (!data.success) {
+                                    showNotification("Error deleting message ID " + id + ": " + data.message);
+                                }
+                                loadConversation();
+                            })
+                            .catch(err => {
+                                console.error(err);
+                                showNotification("Error deleting message ID " + id);
+                            });
+                    });
+                    exitActionMode();
+                }
+            } else if (actionMode === "edit") {
+                if (selectedIDs.size !== 1) {
+                    showNotification("Please select exactly one message to edit.");
+                    return;
+                }
+                const id = Array.from(selectedIDs)[0];
+                toggleReplyBox(id);
+                exitActionMode();
+            }
+        }
+
+        function exitActionMode() {
+            actionMode = "";
+            selectedIDs.clear();
+            actionOkBtn.style.display = "none";
+            const checkboxes = document.querySelectorAll('.msg-checkbox');
+            checkboxes.forEach(cb => cb.style.display = "none");
+        }
+        // ----- End Action Mode Functions -----
+
+        // ----- End of Chat Functions -----
+        function initChat() {
+            if (!qid) {
+                showNotification("No conversation selected.");
+                return;
+            }
+            loadConversation();
+        }
+        initChat();
+        // Poll for conversation every 800ms unless a reply box is open, in action mode, scrolling, or input is focused.
+        setInterval(() => {
+            const activeReply = document.querySelector('.chat-reply-box[style*="block"]');
+            const focusedInput = document.activeElement.tagName === "INPUT" &&
+                document.activeElement.closest('.chat-reply-box');
+            if (!activeReply && actionMode === "" && !isScrolling && !focusedInput) {
+                loadConversation();
+            }
+        }, 800);
+    </script>
+</body>
+
+</html>

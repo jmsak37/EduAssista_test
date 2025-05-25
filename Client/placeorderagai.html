@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Place Order Again</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        #error-msg {
+            color: red;
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        th,
+        td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #4CAF50;
+            color: #fff;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        textarea,
+        input[type="datetime-local"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        
+        .file-input-group {
+            margin-bottom: 10px;
+        }
+        
+        .add-file-btn {
+            background-color: #007bff;
+            color: #fff;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .submit-btn {
+            background-color: #28a745;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            display: none;
+        }
+        /* Modal overlay for thank you message */
+        
+        #thankyou-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        
+        #thankyou-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        #thankyou-content h2 {
+            margin-top: 0;
+            color: #28a745;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Place Order Again</h2>
+        <!-- Error Message Container -->
+        <div id="error-msg"></div>
+        <!-- Order Details Table -->
+        <table id="order-details-table">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Order Name</th>
+                    <th>Subject</th>
+                    <th>Description</th>
+                    <th>Instructions</th>
+                    <th>Deadline</th>
+                </tr>
+            </thead>
+            <tbody id="order-details-body">
+                <tr>
+                    <td colspan="6">Loading order details...</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Hidden field to store JSON order details fetched once -->
+        <input type="hidden" name="order_details" id="order_details" value="">
+
+        <!-- Form for additional details, deadline update, and document uploads -->
+        <form id="placeOrderForm" enctype="multipart/form-data">
+            <!-- Hidden order id -->
+            <input type="hidden" name="order_id" id="order_id" value="">
+            <div class="form-group">
+                <label for="additional_details">Additional Details:</label>
+                <textarea name="additional_details" id="additional_details" placeholder="Enter additional details here..." required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="new_deadline">New Deadline:</label>
+                <input type="datetime-local" name="new_deadline" id="new_deadline" required>
+                <small style="color: red;">Deadline must be at least 1 hour from now.</small>
+            </div>
+            <div class="form-group" id="file-upload-container">
+                <label>ATTACH ADDITIONAL INSTRACTION  DOCUMENTS:</label>
+                <div class="file-input-group">
+                    <input type="file" name="documents[]" />
+                </div>
+            </div>
+            <button type="button" class="add-file-btn" id="addFileBtn">Add Another Document</button>
+            <br>
+            <button type="submit" class="submit-btn" id="submitBtn">Submit Order</button>
+        </form>
+    </div>
+
+    <!-- Modal Overlay for Thank You Message -->
+    <div id="thankyou-modal">
+        <div id="thankyou-content">
+            <h2>Thank you! Your order has been placed successfully.</h2>
+        </div>
+    </div>
+
+    <script>
+        // Helper functions for error display
+        function setError(msg) {
+            document.getElementById('error-msg').innerText = msg;
+        }
+
+        function clearError() {
+            document.getElementById('error-msg').innerText = "";
+        }
+
+        // Utility: Get URL parameter by name.
+        function getParameterByName(name, url = window.location.href) {
+            name = name.replace(/[\[\]]/g, '\\$&');
+            const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
+        }
+
+        // Retrieve order_id from URL (should be passed from downloadorder.html)
+        const orderId = getParameterByName('order_id');
+        if (!orderId) {
+            setError("Order ID is missing in the URL.");
+        }
+        document.getElementById('order_id').value = orderId;
+
+        // Load order details from progress table using placeorderagai.php?action=getOrder
+        function loadOrderDetails() {
+            fetch('placeorderagai.php?action=getOrder&order_id=' + orderId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        setError(data.error);
+                        document.getElementById('order-details-body').innerHTML = `<tr><td colspan="6">No order details available.</td></tr>`;
+                        return;
+                    }
+                    clearError();
+                    // Populate table with order details
+                    const tbody = document.getElementById('order-details-body');
+                    tbody.innerHTML = `
+            <tr>
+              <td>${data.order_id || ""}</td>
+              <td>${data.name || ""}</td>
+              <td>${data.subject || ""}</td>
+              <td>${data.description || ""}</td>
+              <td>${data.instructions || ""}</td>
+              <td>${data.deadline || ""}</td>
+            </tr>
+          `;
+                    // Store the fetched order details in a hidden field as JSON
+                    document.getElementById('order_details').value = JSON.stringify(data);
+                })
+                .catch(error => {
+                    console.error("Error loading order details:", error);
+                    setError("Error loading order details: " + error.message);
+                    document.getElementById('order-details-body').innerHTML = `<tr><td colspan="6">No order details available.</td></tr>`;
+                });
+        }
+
+        // Validate deadline: must be at least 1 hour in the future.
+        function validateDeadline(newDeadline) {
+            const now = new Date();
+            const inputDate = new Date(newDeadline);
+            return (inputDate - now) >= 3600000; // 1 hour in ms
+        }
+
+        // Enable submit button only when form is valid.
+        const additionalDetails = document.getElementById('additional_details');
+        const newDeadlineInput = document.getElementById('new_deadline');
+        const submitBtn = document.getElementById('submitBtn');
+
+        function checkFormValidity() {
+            if (additionalDetails.value.trim().length > 0 &&
+                newDeadlineInput.value.trim().length > 0 &&
+                validateDeadline(newDeadlineInput.value)) {
+                submitBtn.style.display = 'inline-block';
+            } else {
+                submitBtn.style.display = 'none';
+            }
+        }
+
+        additionalDetails.addEventListener('input', checkFormValidity);
+        newDeadlineInput.addEventListener('input', checkFormValidity);
+
+        // Add functionality to add more file input fields.
+        document.getElementById('addFileBtn').addEventListener('click', function() {
+            const container = document.getElementById('file-upload-container');
+            const div = document.createElement('div');
+            div.className = "file-input-group";
+            div.innerHTML = `<input type="file" name="documents[]" />`;
+            container.appendChild(div);
+        });
+
+        // Intercept form submission via AJAX.
+        document.getElementById('placeOrderForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            if (!validateDeadline(newDeadlineInput.value)) {
+                setError("The new deadline must be at least 1 hour from now.");
+                return;
+            }
+            clearError();
+            const form = document.getElementById('placeOrderForm');
+            const formData = new FormData(form);
+            // Also send the previously fetched order details.
+            formData.append('order_details', document.getElementById('order_details').value);
+
+            fetch('placeorderagai.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(res => {
+                    if (res.success) {
+                        clearError();
+                        document.getElementById('thankyou-modal').style.display = 'block';
+                        setTimeout(() => {
+                            window.location.href = "index.html?user=" + res.client_id;
+                        }, 2000);
+                    } else {
+                        setError("Error: " + res.error);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error submitting order:", error);
+                    setError("Error submitting order: " + error.message);
+                });
+        });
+
+        document.addEventListener('DOMContentLoaded', loadOrderDetails);
+    </script>
+</body>
+
+</html>

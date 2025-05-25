@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add/Remove User Balance</title>
+    <style>
+        /* Overall layout */
+        
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        
+        label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Add/Remove User Balance</h2>
+
+        <!-- Step 1: Enter email -->
+        <div id="step1">
+            <label for="user-email">Enter User Email:</label>
+            <input type="text" id="user-email" placeholder="user@example.com">
+            <button id="search-user-btn">Search User</button>
+        </div>
+
+        <!-- Step 2: Display user details and confirmation -->
+        <div id="step2" class="hidden">
+            <p>User Details:</p>
+            <p id="user-details"></p>
+            <button id="confirm-user-btn">Confirm User</button>
+            <button id="decline-user-btn">Decline (Enter another email)</button>
+        </div>
+
+        <!-- Step 3: Transaction type and amount -->
+        <div id="step3" class="hidden">
+            <label for="transaction-type">Transaction Type:</label>
+            <select id="transaction-type">
+        <option value="add">Add Money</option>
+        <option value="remove">Remove Money</option>
+      </select>
+            <label for="transaction-amount">Amount (in dollars):</label>
+            <input type="number" id="transaction-amount" placeholder="Enter amount" min="0" step="0.01">
+            <button id="submit-transaction-btn">Submit Transaction</button>
+        </div>
+
+        <!-- Message Display -->
+        <div id="message" class="message hidden"></div>
+    </div>
+
+    <script>
+        // Search user by email
+        document.getElementById('search-user-btn').addEventListener('click', function() {
+            const email = document.getElementById('user-email').value.trim();
+            if (!email) {
+                showMessage("Please enter a valid email address.", true);
+                return;
+            }
+            showMessage("", true, true);
+            fetch('adduserbalance.php?action=getUser&email=' + encodeURIComponent(email))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showMessage(data.error, true);
+                    } else {
+                        let roleText = "";
+                        if (data.RoleID == 1) roleText = "Client";
+                        else if (data.RoleID == 2) roleText = "Tutor";
+                        else if (data.RoleID == 3) roleText = "Admin";
+                        const details = `Username: ${data.UserName}<br>User ID: ${data.UserID}<br>User Role: ${roleText}`;
+                        document.getElementById('user-details').innerHTML = details;
+                        document.getElementById('step1').classList.add('hidden');
+                        document.getElementById('step2').classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    showMessage("Error fetching user details.", true);
+                    console.error(error);
+                });
+        });
+
+        // Decline user confirmation – go back to step1
+        document.getElementById('decline-user-btn').addEventListener('click', function() {
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step1').classList.remove('hidden');
+        });
+
+        // Confirm user and move to transaction step
+        document.getElementById('confirm-user-btn').addEventListener('click', function() {
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.remove('hidden');
+        });
+
+        // Submit transaction
+        document.getElementById('submit-transaction-btn').addEventListener('click', function() {
+            const transactionType = document.getElementById('transaction-type').value;
+            const amount = parseFloat(document.getElementById('transaction-amount').value);
+            if (isNaN(amount) || amount <= 0) {
+                showMessage("Please enter a valid amount.", true);
+                return;
+            }
+            const userDetailsHtml = document.getElementById('user-details').innerHTML;
+            const userIDMatch = userDetailsHtml.match(/User ID:\s*(\d+)/);
+            if (!userIDMatch) {
+                showMessage("User details not found. Please try again.", true);
+                return;
+            }
+            const userID = userIDMatch[1];
+            fetch('adduserbalance.php?action=updateBalance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userID: userID,
+                        transactionType: transactionType,
+                        amount: amount
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showMessage(data.error, true);
+                    } else {
+                        showMessage(data.message, false);
+                        resetForm();
+                    }
+                })
+                .catch(error => {
+                    showMessage("Error updating balance.", true);
+                    console.error(error);
+                });
+        });
+
+        function showMessage(msg, isError, clear = false) {
+            const messageDiv = document.getElementById('message');
+            if (clear) {
+                messageDiv.classList.add('hidden');
+                messageDiv.innerHTML = "";
+                return;
+            }
+            messageDiv.innerHTML = msg;
+            messageDiv.classList.remove('hidden');
+            if (isError) {
+                messageDiv.classList.remove('success');
+                messageDiv.classList.add('error');
+            } else {
+                messageDiv.classList.remove('error');
+                messageDiv.classList.add('success');
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('step3').classList.add('hidden');
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step1').classList.remove('hidden');
+            document.getElementById('user-email').value = "";
+            document.getElementById('transaction-amount').value = "";
+            document.getElementById('transaction-type').value = "add";
+            document.getElementById('user-details').innerHTML = "";
+        }
+    </script>
+</body>
+
+</html>

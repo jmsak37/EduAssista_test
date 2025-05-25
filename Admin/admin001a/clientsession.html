@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Client Session Management</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    /* Error message styling */
+    #errorMessage {
+      color: red;
+      text-align: center;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    /* Table styling */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #fff;
+      margin: 0 auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #4CAF50;
+      color: white;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+    /* Action button styling */
+    .action-btn {
+      background-color: #f44336;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .action-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <h1>Client Session Management</h1>
+  <div id="errorMessage"></div>
+  <table id="usersTable">
+    <thead>
+      <tr>
+        <th>Client ID</th>
+        <th>UserName</th>
+        <th>Status</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows will be populated here -->
+    </tbody>
+  </table>
+
+  <script>
+    // Function to display error messages
+    function showError(message) {
+      document.getElementById('errorMessage').innerText = message;
+    }
+    function clearError() {
+      document.getElementById('errorMessage').innerText = "";
+    }
+
+    // Load all client users (RoleID = 1)
+    function loadUsers() {
+      clearError();
+      fetch('clientsession.php')
+        .then(response => response.json())
+        .then(data => {
+          if(data.status === 'success'){
+            populateTable(data.users);
+          } else {
+            showError('Error: ' + data.message);
+          }
+        })
+        .catch(error => {
+          showError('Error: ' + error);
+          console.error('Error:', error);
+        });
+    }
+
+    // Populate the table with the user data
+    function populateTable(users) {
+      const tbody = document.querySelector('#usersTable tbody');
+      tbody.innerHTML = "";
+      users.forEach(user => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${user.UserID}</td>
+          <td>${user.UserName}</td>
+          <td>${user.status}</td>
+          <td>
+            ${ user.status === 'insession' 
+              ? `<button class="action-btn" onclick="markOut(${user.UserID})">Mark Out of Session</button>`
+              : `<button class="action-btn" disabled>Already Out</button>` 
+            }
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Mark a client as out of session
+    function markOut(userID) {
+      clearError();
+      fetch('clientsession.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `action=markOut&UserID=${userID}`
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.status === 'success'){
+          loadUsers();
+        } else {
+          showError('Error: ' + data.message);
+        }
+      })
+      .catch(error => {
+        showError('Error: ' + error);
+        console.error('Error:', error);
+      });
+    }
+
+    window.onload = loadUsers;
+  </script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit User - Admin Dashboard</title>
+  <link rel="stylesheet" href="edit_user.css">
+</head>
+<body>
+  <div class="container">
+    <h2>Edit User</h2>
+    <form id="editUserForm">
+      <input type="hidden" name="userID" id="userID" value="">
+      
+      <label for="username">Username:</label>
+      <input type="text" name="username" id="username" required>
+      
+      <label for="email">Email:</label>
+      <input type="email" name="email" id="email" required>
+      
+      <label for="role">Role:</label>
+      <select name="role" id="role" required>
+        <option value="1">Client</option>
+        <option value="2">Tutor</option>
+        <option value="3">Admin</option>
+      </select>
+      
+      <button type="submit">Update User</button>
+    </form>
+    <a href="../admin001a/index.html" class="back-link">Back</a>
+  </div>
+  
+  <!-- Modal Popup for Thank You Message -->
+  <div id="thankYouModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p id="thankYouMessage">Thank you! User updated successfully.</p>
+    </div>
+  </div>
+  
+  <script>
+    // Helper: Get query parameter from URL
+    function getQueryParam(param) {
+      let urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+    
+    const userID = getQueryParam('userID');
+    if (!userID) {
+      alert("User ID not provided.");
+      window.location.href = "users.html";
+    }
+    
+    // Load user data from the backend
+    async function loadUserData() {
+      try {
+        const response = await fetch(`edit_user.php?userID=${userID}`);
+        const result = await response.json();
+        if (result.error) {
+          alert(result.error);
+          window.location.href = "users.html";
+          return;
+        }
+        const data = result.data;
+        document.getElementById("userID").value = data.UserID;
+        document.getElementById("username").value = data.UserName;
+        document.getElementById("email").value = data.Email;
+        document.getElementById("role").value = data.RoleID;
+      } catch (err) {
+        console.error("Error loading user data:", err);
+        alert("Error loading user data.");
+        window.location.href = "users.html";
+      }
+    }
+    
+    // Load user details on page load
+    window.addEventListener("DOMContentLoaded", loadUserData);
+    
+    // Modal popup logic
+    const modal = document.getElementById("thankYouModal");
+    const closeModal = document.querySelector(".modal .close");
+    
+    closeModal.onclick = function() {
+      modal.style.display = "none";
+    }
+    
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+    
+    // Handle form submission to update the user details
+    document.getElementById("editUserForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      try {
+        const response = await fetch("edit_user.php", {
+          method: "POST",
+          body: formData
+        });
+        const result = await response.json();
+        if (result.success) {
+          // Show modal with thank you message
+          document.getElementById("thankYouMessage").textContent = result.success;
+          modal.style.display = "block";
+          // After 2 seconds, hide modal and redirect
+          setTimeout(() => {
+            modal.style.display = "none";
+            window.location.href = "../admin001a/index.html";
+          }, 2000);
+        } else {
+          alert(result.error);
+        }
+      } catch (err) {
+        console.error("Error updating user:", err);
+        alert("Error updating user.");
+      }
+    });
+  </script>
+</body>
+</html>

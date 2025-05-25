@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Questions Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        
+        h1 {
+            text-align: center;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            margin-bottom: 20px;
+        }
+        
+        table,
+        th,
+        td {
+            border: 1px solid #ccc;
+        }
+        
+        th,
+        td {
+            padding: 8px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+        }
+        
+        a {
+            color: blue;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        
+        button {
+            padding: 5px 10px;
+            margin: 2px;
+            background-color: #00796b;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .unread {
+            background-color: #d4edda;
+        }
+        
+        .notification {
+            background-color: #dff0d8;
+            color: #3c763d;
+            padding: 10px;
+            border: 1px solid #d6e9c6;
+            margin-bottom: 20px;
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1200;
+        }
+        
+        .drop-area {
+            display: none;
+            background: #eef;
+            padding: 10px;
+            margin: 5px 0 15px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .message {
+            padding: 5px;
+            margin-bottom: 5px;
+            border-bottom: 1px dashed #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Questions Management</h1>
+    <div id="notification" class="notification"></div>
+    <table id="questionsTable">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>User ID</th>
+                <th>Unread Count</th>
+                <th>Last Message Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Grouped rows will be inserted here -->
+        </tbody>
+    </table>
+
+    <script>
+        let questions = [];
+        let grouped = {};
+
+        function showNotification(message) {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.style.display = 'block';
+            setTimeout(() => {
+                notif.style.display = 'none';
+            }, 3000);
+        }
+
+        // Poll questions every 800ms
+        function pollQuestions() {
+            fetch('questions.php?action=list')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        questions = data.questions;
+                        groupQuestions();
+                        populateTable();
+                    } else {
+                        showNotification("Error: " + data.message);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showNotification("Error fetching questions from server.");
+                });
+        }
+
+        // Group questions by email
+        function groupQuestions() {
+            grouped = {};
+            questions.forEach(q => {
+                if (!grouped[q.Email]) {
+                    grouped[q.Email] = [];
+                }
+                grouped[q.Email].push(q);
+            });
+        }
+
+        // Populate table: each row represents one sender (email)
+        function populateTable() {
+            const tbody = document.querySelector('#questionsTable tbody');
+            tbody.innerHTML = "";
+            for (let email in grouped) {
+                const msgs = grouped[email];
+                // Count unread messages (Reply is empty)
+                const unreadCount = msgs.filter(q => q.Reply.trim() === "").length;
+                // Sort messages by Date ascending; unreplied should appear first
+                msgs.sort((a, b) => {
+                    if (a.Reply.trim() === "" && b.Reply.trim() !== "") return -1;
+                    if (a.Reply.trim() !== "" && b.Reply.trim() === "") return 1;
+                    return new Date(a.Date) - new Date(b.Date);
+                });
+                const lastDate = msgs[msgs.length - 1].Date;
+                // Use the first question's ID for opening chat
+                const questionID = msgs[0].QuestionID;
+                const userID = msgs[0].UserID;
+                const tr = document.createElement('tr');
+                if (unreadCount > 0) tr.className = "unread";
+                tr.innerHTML = 
+          <td><a onclick="openChat(${questionID})">${email}</a></td>
+          <td>${userID}</td>
+          <td>${unreadCount > 0 ? unreadCount : ""}</td>
+          <td>${lastDate}</td>
+          <td>
+            <button onclick="openChat(${questionID})">Chat</button>
+        ;
+                tbody.appendChild(tr);
+                // Create a drop-down area for messages
+                const dropTr = document.createElement('tr');
+                dropTr.innerHTML = <td colspan="5"><div id="drop_${email}" class="drop-area"></div></td>;
+                tbody.appendChild(dropTr);
+            }
+        }
+
+        // Toggle the drop-down area for a given email
+        function toggleDrop(email) {
+            const dropDiv = document.getElementById('drop_' + email);
+            if (dropDiv.style.display === "none" || dropDiv.style.display === "") {
+                // Populate with messages
+                let html = "";
+                const msgs = grouped[email];
+                msgs.forEach(q => {
+                    html += <div class="message">
+                      <strong>QID ${q.QuestionID}:</strong> ${q.QuestionText} <br>
+                      <small>${q.Date}</small> ${q.Reply.trim()==="" ? "<em>(Unread)</em>" : ""}
+                   </div>;
+                });
+                dropDiv.innerHTML = html;
+                dropDiv.style.display = "block";
+            } else {
+                dropDiv.style.display = "none";
+            }
+        }
+
+        // Open chat.html using the first QuestionID from the group
+        function openChat(questionID) {
+            window.location.href = "chat.html?QuestionID=" + encodeURIComponent(questionID);
+        }
+
+        setInterval(pollQuestions, 800);
+    </script>
+</body>
+
+</html>

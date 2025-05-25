@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact Us</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    .container {
+      width: 80%;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .contact-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+    }
+    .contact-info div {
+      flex: 1;
+      margin: 0 10px;
+      padding: 20px;
+      background-color: white;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .social-icons i {
+      font-size: 24px;
+      margin-right: 10px;
+    }
+    .chatbot-container {
+      margin-top: 50px;
+    }
+    .chatbot-box {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: 100%;
+      height: 500px;
+      display: flex;
+      flex-direction: column;
+      background-color: #fff;
+      position: relative;
+    }
+    /* Current chat messages area */
+    .chatbot-messages {
+      padding: 20px;
+      height: 60%;
+      overflow-y: auto;
+      background: #e9ecef;
+    }
+    /* Divider between current chat and previous chats */
+    .divider {
+      border-top: 1px solid #ccc;
+      text-align: center;
+      padding: 5px;
+      background: #fff;
+      font-style: italic;
+      display: none;
+    }
+    /* Previous chats area */
+    .prev-chats {
+      padding: 10px;
+      height: 25%;
+      overflow-y: auto;
+      background: #fdfdfd;
+      display: none;
+    }
+    .chatbot-messages p,
+    .prev-chats p {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 15px;
+      max-width: 80%;
+      clear: both;
+    }
+    .bot-msg {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      float: left;
+    }
+    .user-msg {
+      background-color: #d4edda;
+      color: #155724;
+      float: right;
+      text-align: right;
+    }
+    .chatbot-input {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ccc;
+      background-color: #f8f9fa;
+    }
+    .chatbot-input input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      font-size: 16px;
+    }
+    .chatbot-input button {
+      padding: 10px;
+      border: none;
+      background-color: #28a745;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #toggleHistoryBtn, #nextHistoryBtn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Contact Us</h1>
+    <div class="contact-info">
+      <div>
+        <h2>Phone</h2>
+        <p><i class="fas fa-phone"></i> +254769089734</p>
+      </div>
+      <div>
+        <h2>Email</h2>
+        <p><i class="fas fa-envelope"></i> support@example.com</p>
+      </div>
+      <div>
+        <h2>Social Media</h2>
+        <div class="social-icons">
+          <a href="https://facebook.com"><i class="fab fa-facebook"></i></a>
+          <a href="https://instagram.com"><i class="fab fa-instagram"></i></a>
+          <a href="https://telegram.org"><i class="fab fa-telegram"></i></a>
+          <a href="https://wa.me/+254769089734"><i class="fab fa-whatsapp"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="chatbot-container">
+      <h2>Chat with Support</h2>
+      <div class="chatbot-box" id="chatbox">
+        <div class="chatbot-messages" id="messages">
+          <p class="bot-msg"><strong>Bot:</strong> Hello! How can I assist you today?</p>
+        </div>
+        <div class="divider" id="divider">Previous Chats</div>
+        <div class="prev-chats" id="prevChatsDiv"></div>
+        <button id="toggleHistoryBtn" onclick="toggleHistory()" style="display:none;">Show Previous Chats</button>
+        <div class="chatbot-input">
+          <input type="text" id="userInput" placeholder="Type your message here..." />
+          <button onclick="sendMessage()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const messages = document.getElementById("messages");
+    const prevChatsDiv = document.getElementById("prevChatsDiv");
+    const toggleHistoryBtn = document.getElementById("toggleHistoryBtn");
+    const divider = document.getElementById("divider");
+    const userInputField = document.getElementById("userInput");
+
+    let supportEmail = "";       // Once set, remains for the session.
+    let waitingForEmail = false; // Flag: next message is treated as email input.
+    let waitingForSupportConfirmation = false; // Flag: waiting for confirmation to speak with support.
+    let pendingQuestion = "";    // Holds an unknown question awaiting support reply.
+    let knownTimeout = null;     // Timeout for fallback known response.
+    let pollingInterval = null;  // Polling interval handle.
+    let currentHistoryPage = 1;  // For pagination of previous chats.
+
+    // Append a message from the bot.
+    function appendBotMessage(message) {
+      messages.innerHTML += `<p class="bot-msg">${message}</p>`;
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    // Append a message from the user.
+    function appendUserMessage(message) {
+      messages.innerHTML += `<p class="user-msg"><strong>You:</strong> ${message}</p>`;
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    // Append a message in the previous chats section.
+    function appendPrevChat(message) {
+      prevChatsDiv.innerHTML += `<p>${message}</p>`;
+    }
+
+    // Toggle display of previous chats.
+    function toggleHistory() {
+      if (prevChatsDiv.style.display === "none" || prevChatsDiv.style.display === "") {
+        currentHistoryPage = 1;
+        loadChatHistory(currentHistoryPage);
+        toggleHistoryBtn.innerText = "Hide Previous Chats";
+      } else {
+        prevChatsDiv.style.display = "none";
+        divider.style.display = "none";
+        toggleHistoryBtn.innerText = "Show Previous Chats";
+      }
+    }
+
+    // Load previous chat history for a given page.
+    function loadChatHistory(page) {
+      prevChatsDiv.innerHTML = "";
+      fetch(`getChatHistory.php?email=${encodeURIComponent(supportEmail)}&page=${page}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.length > 0) {
+            divider.style.display = "block";
+            toggleHistoryBtn.style.display = "block";
+            data.reverse().forEach(chat => {
+              appendPrevChat(`<strong>You:</strong> ${chat.QuestionText} <br><small>${chat.Date}</small>`);
+              if (chat.Reply) {
+                appendPrevChat(`<strong>Support:</strong> ${chat.Reply} <br><small>${chat.Date}</small>`);
+              }
+            });
+            if (data.length === 10) {
+              prevChatsDiv.innerHTML += `<button id="nextHistoryBtn" onclick="nextHistoryPage()">Next Chats</button>`;
+            }
+            prevChatsDiv.style.display = "block";
+          } else {
+            prevChatsDiv.innerHTML = "<p>No previous chats found.</p>";
+            prevChatsDiv.style.display = "block";
+          }
+        })
+        .catch(error => console.error('Error fetching chat history:', error));
+    }
+
+    // Load the next page of chat history.
+    function nextHistoryPage() {
+      currentHistoryPage++;
+      loadChatHistory(currentHistoryPage);
+    }
+
+    // Save unknown message into the database.
+    function saveUnknownResponse(userInput, email = "") {
+      let payload = { userInput: userInput };
+      if (email !== "") {
+        payload.email = email;
+      }
+      fetch('saveUnknownResponse.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+      })
+      .then(response => response.text())
+      .then(data => console.log(data))
+      .catch(error => console.error('Error:', error));
+    }
+
+    // Poll for support reply.
+    // If support session is active, wait 10 minutes before fallback; else 4 seconds.
+    function pollForSupport(userInput, knownResponse) {
+      let supportReceived = false;
+      pollingInterval = setInterval(() => {
+        fetch(`checkResponse.php?userInput=${encodeURIComponent(userInput)}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.type === "support") {
+              clearTimeout(knownTimeout);
+              clearInterval(pollingInterval);
+              appendBotMessage(`<strong>Support:</strong> ${data.reply}`);
+              learnResponse(userInput, data.reply);
+              pendingQuestion = "";
+            }
+          })
+          .catch(err => console.error(err));
+      }, 100);
+      const waitTime = (supportEmail !== "") ? 600000 : 4000;
+      knownTimeout = setTimeout(() => {
+        if (!supportReceived) {
+          clearInterval(pollingInterval);
+          if (knownResponse && knownResponse !== "unknown") {
+            appendBotMessage(`<strong>Bot:</strong> ${knownResponse}`);
+          }
+          pendingQuestion = "";
+        }
+      }, waitTime);
+    }
+
+    // Immediately respond for known text (without delay).
+    function respondImmediately(responseText) {
+      appendBotMessage(`<strong>Bot:</strong> ${responseText}`);
+    }
+
+    // Teach the bot by saving the Q/A pair.
+    function learnResponse(question, reply) {
+      let payload = { question: question, reply: reply };
+      fetch('saveLearnedResponse.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+      })
+      .then(response => response.text())
+      .then(data => console.log(data))
+      .catch(error => console.error('Error learning response:', error));
+    }
+
+    // Get bot response from checkResponse.php.
+    function getBotResponse(userInput) {
+      const cleanedInput = userInput.toLowerCase().trim();
+      fetch(`checkResponse.php?userInput=${encodeURIComponent(cleanedInput)}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.reply === "unknown") {
+            // Unknown question.
+            if (supportEmail === "") {
+              waitingForEmail = true;
+              pendingQuestion = userInput;
+              appendBotMessage("Your question is not recognized. To speak to support, please provide your email in your next message.");
+            } else {
+              pendingQuestion = userInput;
+              saveUnknownResponse(userInput, supportEmail);
+              pollForSupport(userInput, data.reply);
+              appendBotMessage("Your message has been sent to support. Please wait for their reply.");
+            }
+          } else if (data.type === "bot") {
+            // Known response: respond immediately.
+            respondImmediately(data.reply);
+          } else if (data.type === "support") {
+            appendBotMessage(`<strong>Support:</strong> ${data.reply}`);
+            learnResponse(userInput, data.reply);
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching response:', error);
+          appendBotMessage("Sorry, there was an error processing your request.");
+        });
+    }
+
+    // Main function to send a message.
+    function sendMessage() {
+      const message = userInputField.value.trim();
+      if (message === "") return;
+      appendUserMessage(message);
+      userInputField.value = "";
+
+      // If waiting for support confirmation.
+      if (waitingForSupportConfirmation) {
+        if (message.toLowerCase() === "yes") {
+          waitingForSupportConfirmation = false;
+          waitingForEmail = true;
+          appendBotMessage("Please enter your email to start a support conversation.");
+        } else {
+          waitingForSupportConfirmation = false;
+          appendBotMessage("Okay, continuing with normal chat.");
+          getBotResponse(message);
+        }
+        return;
+      }
+
+      // If waiting for email input.
+      if (waitingForEmail) {
+        if (message.indexOf("@") > -1) {
+          supportEmail = message;
+          waitingForEmail = false;
+          appendBotMessage("Thank you. Your email has been recorded.");
+          // Show previous chats toggle button.
+          toggleHistoryBtn.style.display = "block";
+          divider.style.display = "block";
+          // Optionally, load previous chats.
+          currentHistoryPage = 1;
+          loadChatHistory(currentHistoryPage);
+          // Process pending question if any.
+          if (pendingQuestion !== "") {
+            saveUnknownResponse(pendingQuestion, supportEmail);
+            pollForSupport(pendingQuestion, "unknown");
+          }
+        } else {
+          appendBotMessage("That doesn't look like a valid email. Please enter a valid email address.");
+        }
+        return;
+      }
+
+      // If user types "support" exactly and no support session is active,
+      // ask for confirmation.
+      if (supportEmail === "" && message.toLowerCase() === "support") {
+        waitingForSupportConfirmation = true;
+        appendBotMessage("Do you really want to speak to support? Please type yes or no.");
+        return;
+      }
+
+      // If support conversation is active and a pending question exists, ask the user to wait.
+      if (supportEmail !== "" && pendingQuestion !== "") {
+        appendBotMessage("Please wait until support replies to your previous message.");
+        return;
+      }
+
+      // If the message is a closing phrase.
+      if (/\b(bye|close|exit)\b/i.test(message)) {
+        appendBotMessage("It looks like you want to end the chat. Thank you for contacting us.");
+        return;
+      }
+
+      // Otherwise, process the new message.
+      getBotResponse(message);
+    }
+
+    // Listen for Enter key press.
+    userInputField.addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Tutors - Admin Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Manage Tutors</h1>
+  <div class="content-wrapper" id="tutorContainer">
+    <!-- Tutor table content will load here -->
+  </div>
+  <div class="footer">
+    <p>2024 © EduAssista. All rights reserved. Contact us at <a href="mailto:jmsak37@gmail.com">jmsak37@gmail.com</a> or call +25469089734.</p>
+  </div>
+  <script>
+    // Load tutor content from tutor.php via AJAX
+    fetch('tutor.php')
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('tutorContainer').innerHTML = html;
+      })
+      .catch(err => console.error('Failed to load tutor data:', err));
+  </script>
+</body>
+</html>

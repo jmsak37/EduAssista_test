@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Page</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="style2.css">
+    <style>
+        /* General layout and typography */
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        
+        #nav-placeholder,
+        #footer-placeholder {
+            width: 100%;
+        }
+        
+        .content {
+            margin-top: 80px;
+            /* Adjust if your navigation height changes */
+        }
+        /* Subnavigation: username, rating, and logout */
+        
+        .subnavigation {
+            margin: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            position: relative;
+        }
+        
+        #username {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        #user-rating {
+            margin-top: 5px;
+            font-size: 16px;
+        }
+        
+        #logout-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 18px 35px;
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            border-radius: 5px;
+        }
+        
+        #logout-btn:hover {
+            background-color: darkred;
+        }
+        /* Table styling */
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        /* Progress circle styling */
+        
+        .progress-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            color: #000;
+            position: relative;
+            /* Text inside circle in black */
+        }
+        
+        .progress-circle-container {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        
+        .download-link {
+            color: #007BFF;
+            text-decoration: none;
+            display: block;
+            margin-top: 5px;
+        }
+        
+        .download-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <div id="nav-placeholder"></div>
+
+    <!-- Subnavigation: Username, Rating, Logout -->
+    <div class="subnavigation" id="subnavigation">
+        <div id="username">
+            Hello, <span id="user-name">Loading...</span>
+        </div>
+        <div id="user-rating">
+            Rating: <span id="rating">Loading...</span>%
+        </div>
+        <button id="logout-btn" onclick="window.location.href='logout.php'">Logout</button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="content">
+        <div class="container">
+            <!-- Active Orders Table -->
+            <div class="box" id="order-progress-box">
+                <h2>Your Orders</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Order Name</th>
+                            <th>Subject</th>
+                            <th>Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orders-progress-table">
+                        <tr>
+                            <td colspan="4">Loading orders...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div id="footer-placeholder"></div>
+
+    <script>
+        // Load external HTML (navigation and footer)
+        function loadHTML(id, url) {
+            const placeholder = document.getElementById(id);
+            fetch(url)
+                .then(response => response.text())
+                .then(data => placeholder.innerHTML = data)
+                .catch(error => console.error('Error loading ' + url, error));
+        }
+
+        // Fetch session user data and display username and rating
+        function fetchSessionUser() {
+            fetch('profile.php?action=getUserData')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById('user-name').textContent = 'Guest';
+                        document.getElementById('rating').textContent = '100';
+                    } else {
+                        document.getElementById('user-name').textContent = data.username;
+                        document.getElementById('rating').textContent = data.rating;
+                        // Fetch active orders from all three tables
+                        fetchActiveOrders(data.userID);
+                    }
+                })
+                .catch(error => console.error('Error fetching user data:', error));
+        }
+
+        // Helper function to return progress circle properties based on source and status
+        function getCircleProperties(source, status) {
+            if (source === "orders") {
+                if (status === "undone") {
+                    return {
+                        percentage: 0,
+                        text: "undone",
+                        color: "#ff6666"
+                    };
+                } else if (status === "waiting") {
+                    return {
+                        percentage: 15,
+                        text: "waiting",
+                        color: "#ff9900"
+                    };
+                } else if (status === "beingdone") {
+                    return {
+                        percentage: 25,
+                        text: "beingdone",
+                        color: "#66cc66"
+                    };
+                } else if (status === "skipped" || status === "beingread") {
+                    return {
+                        percentage: 10,
+                        text: "",
+                        color: "#999999"
+                    };
+                } else {
+                    return {
+                        percentage: 0,
+                        text: status,
+                        color: "#ff6666"
+                    };
+                }
+            } else if (source === "progress") {
+                return {
+                    percentage: 50,
+                    text: "",
+                    color: "#3399ff"
+                };
+            } else if (source === "completed") {
+                return {
+                    percentage: 100,
+                    text: "completed",
+                    color: "#4CAF50"
+                };
+            } else {
+                return {
+                    percentage: 0,
+                    text: "",
+                    color: "#ddd"
+                };
+            }
+        }
+
+        // Fetch active orders from orders, progress, and completed tables
+        function fetchActiveOrders(clientID) {
+            fetch(`profile.php?action=getActiveOrders&clientID=${clientID}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('orders-progress-table');
+                    tableBody.innerHTML = '';
+                    if (data.error) {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td colspan="4">${data.error}</td>`;
+                        tableBody.appendChild(row);
+                    } else {
+                        data.orders.forEach(order => {
+                            const row = document.createElement('tr');
+                            // Get circle properties
+                            let props = getCircleProperties(order.source, order.status);
+                            // If a link is added (for progress or completed orders), override the circle text with "done"
+                            if (order.source === "progress") {
+                                props.text = "done";
+                            } else if (order.source === "completed") {
+                                props.text = "completed";
+                            }
+
+                            let progressHtml = `<div class="progress-circle-container">
+                <div class="progress-circle" style="background: conic-gradient(${props.color} ${props.percentage}%, #e0e0e0 ${props.percentage}%);">
+                  ${props.text}
+                </div>`;
+                            if (order.source === "progress") {
+                                progressHtml += `<a href="downloadorder.html?order_id=${order.order_id}" class="download-link">click here to download the order</a>`;
+                            } else if (order.source === "completed") {
+                                progressHtml += `<a href="seetheorder.html?order_id=${order.order_id}" class="download-link">click here to view the order</a>`;
+                            }
+                            progressHtml += `</div>`;
+
+                            row.innerHTML = `
+                <td>${order.order_id}</td>
+                <td>${order.name}</td>
+                <td>${order.subject}</td>
+                <td>${progressHtml}</td>
+              `;
+                            tableBody.appendChild(row);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error fetching active orders:', error));
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHTML("nav-placeholder", "navigation.html");
+            loadHTML("footer-placeholder", "footer.html");
+            fetchSessionUser();
+        });
+
+        // Check every 5 seconds if the session user is still valid (e.g., still a tutor, if needed)
+        setInterval(function() {
+            fetch('checkUserRole.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        window.location.href = "../login.html";
+                    }
+                })
+                .catch(error => {
+                    console.error("Error checking user role:", error);
+                    window.location.href = "../login.html";
+                });
+        }, 5000);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+        }
+        
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            margin: 20px auto;
+        }
+        
+        .form-container h1 {
+            text-align: center;
+        }
+        
+        .form-container label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        
+        .form-container input[type="text"],
+        .form-container input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .form-container input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .form-container input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        
+        .error-message {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation will be loaded here -->
+    <div id="navigation"></div>
+    <link rel="stylesheet" href="styles.css">
+
+    <div class="form-container">
+        <h1>Login</h1>
+        <form id="loginForm">
+            <label for="email">Email:</label>
+            <input type="text" id="email" name="email" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <input type="submit" value="Login">
+        </form>
+        <div id="error-message" class="error-message"></div>
+    </div>
+
+    <!-- Footer will be loaded here -->
+    <div id="footer"></div>
+
+    <script>
+        // Function to load external HTML
+        function loadHTML(file, elementId) {
+            fetch(file)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById(elementId).innerHTML = data;
+                })
+                .catch(error => {
+                    console.error('Error loading HTML:', error);
+                });
+        }
+
+        // Load navigation and footer
+        loadHTML('navigation.html', 'navigation');
+        loadHTML('footer.html', 'footer');
+
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            // Clear any previous error messages
+            document.getElementById('error-message').textContent = "";
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            // Initiate fetch request
+            fetch('login.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+                })
+                .then(response => {
+                    // Get raw response text
+                    return response.text().then(text => {
+                        return { text, response };
+                    });
+                })
+                .then(({ text, response }) => {
+                    // Try parsing JSON
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                    } catch (error) {
+                        document.getElementById('error-message').textContent =
+                            "Step 3: JSON parsing failed. Error: " + error.message + "\n" +
+                            "Response received:\n" + text;
+                        throw error;
+                    }
+
+                    // Process response based on returned status
+                    if (data.status === 'redirect_restricted') {
+                        window.location.href = 'on_hold.html';
+                    } else if (data.status === 'redirect') {
+                        const userId = data.userID;
+                        switch (data.role) {
+                            case 'client':
+                                window.location.href = `client/index.html?user=${userId}`;
+                                break;
+                            case 'tutor':
+                                window.location.href = `tutor/tutor_index.html?user=${userId}`;
+                                break;
+                            case 'admin':
+                                window.location.href = `admin/dashboard.html?user=${userId}`;
+                                break;
+                        }
+                    } else if (data.status === 'not_found') {
+                        const userResponse = confirm("User does not exist. Would you like to register?");
+                        if (userResponse) {
+                            window.location.href = 'register.html';
+                        } else {
+                            window.location.href = 'index.html';
+                        }
+                    } else if (data.status === 'error') {
+                        document.getElementById('error-message').textContent = "Step 5: " + data.message;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Feedback Management - EduAssista</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #1dbab4;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      margin-top: 20px;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #00796b;
+      color: #fff;
+    }
+    .button {
+      background-color: #00796b;
+      color: #fff;
+      padding: 6px 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+    .button:hover {
+      background-color: #004d40;
+    }
+    /* Modal styling */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1100;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 400px;
+      border-radius: 5px;
+      position: relative;
+      box-sizing: border-box;
+    }
+    .close {
+      color: #aaa;
+      font-size: 24px;
+      font-weight: bold;
+      position: absolute;
+      right: 10px;
+      top: 5px;
+      cursor: pointer;
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    input[type="text"],
+    textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    input[readonly] {
+      background-color: #f5f5f5;
+    }
+    input[type="submit"],
+    button.modal-btn {
+      background-color: #4CAF50;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    input[type="submit"]:hover,
+    button.modal-btn:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>Feedback Management</h1>
+  <table id="feedbackTable">
+    <thead>
+      <tr>
+        <th>UserID</th>
+        <th>FeedbackID</th>
+        <th>FeedbackMessage</th>
+        <th>Order ID</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows loaded dynamically -->
+    </tbody>
+  </table>
+
+  <!-- Modal for viewing user details -->
+  <div id="viewModal" class="modal">
+    <div class="modal-content">
+      <span id="closeViewModal" class="close">&times;</span>
+      <h2>User Details</h2>
+      <div id="userDetails">
+        <!-- User details will be loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for updating feedback -->
+  <div id="updateModal" class="modal">
+    <div class="modal-content">
+      <span id="closeUpdateModal" class="close">&times;</span>
+      <h2>Update Feedback</h2>
+      <form id="updateForm">
+        <input type="hidden" id="updateFeedbackID" name="feedback_id">
+        <input type="hidden" id="updateUserID" name="user_id">
+        <input type="hidden" id="updateOrderID" name="order_id">
+        <label for="updateFeedbackMessage">Feedback Message:</label>
+        <textarea id="updateFeedbackMessage" name="feedback_message" rows="4" required></textarea>
+        <br>
+        <input type="submit" value="Save Update">
+      </form>
+    </div>
+  </div>
+
+  <!-- Notification Modal -->
+  <div id="notificationModal" class="modal">
+    <div class="modal-content">
+      <span id="notificationClose" class="close">&times;</span>
+      <p id="notificationMessage"></p>
+    </div>
+  </div>
+
+  <script>
+    let feedbackRecords = [];
+    let selectedFeedback = null;
+
+    function loadFeedback() {
+      fetch("feedback.php?action=list")
+        .then(response => response.json())
+        .then(data => {
+          if(data.success) {
+            feedbackRecords = data.feedback;
+            populateFeedbackTable();
+          } else {
+            showNotification(data.message);
+          }
+        })
+        .catch(error => {
+          console.error("Error loading feedback:", error);
+          showNotification("Error loading feedback.");
+        });
+    }
+
+    function populateFeedbackTable() {
+      const tbody = document.querySelector("#feedbackTable tbody");
+      tbody.innerHTML = "";
+      feedbackRecords.forEach(record => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${record.UserID}</td>
+          <td>${record.FeedbackID}</td>
+          <td>${record.FeedbackMessage}</td>
+          <td>${record.order_id}</td>
+          <td>
+            <button class="button" onclick="viewUser(${record.UserID})">View User</button>
+            <button class="button" onclick="openUpdateModal(${record.FeedbackID}, ${record.UserID}, '${record.order_id}', '${encodeURIComponent(record.FeedbackMessage)}')">Edit</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function viewUser(userID) {
+      fetch("feedback.php?action=viewUser&user_id=" + userID)
+        .then(response => response.json())
+        .then(data => {
+          if(data.success) {
+            let user = data.user;
+            let details = `<p><strong>UserID:</strong> ${user.UserID}</p>
+                           <p><strong>UserName:</strong> ${user.UserName}</p>
+                           <p><strong>Email:</strong> ${user.Email}</p>
+                           <p><strong>Rule:</strong> ${user.rule}</p>
+                           <p><strong>Created At:</strong> ${user.CreatedAt}</p>
+                           <p><strong>Updated At:</strong> ${user.UpdatedAt}</p>`;
+            document.getElementById("userDetails").innerHTML = details;
+            document.getElementById("viewModal").style.display = "block";
+          } else {
+            showNotification("User not found: " + data.message);
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching user details:", error);
+          showNotification("Error fetching user details.");
+        });
+    }
+
+    function openUpdateModal(feedbackID, userID, orderID, feedbackMessageEncoded) {
+      selectedFeedback = {
+        feedbackID: feedbackID,
+        userID: userID,
+        orderID: orderID,
+        feedbackMessage: decodeURIComponent(feedbackMessageEncoded)
+      };
+      document.getElementById("updateFeedbackID").value = selectedFeedback.feedbackID;
+      document.getElementById("updateUserID").value = selectedFeedback.userID;
+      document.getElementById("updateOrderID").value = selectedFeedback.orderID;
+      document.getElementById("updateFeedbackMessage").value = selectedFeedback.feedbackMessage;
+      document.getElementById("updateModal").style.display = "block";
+    }
+
+    function closeUpdateModal() {
+      document.getElementById("updateModal").style.display = "none";
+    }
+
+    document.getElementById("updateForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const formData = new FormData(document.getElementById("updateForm"));
+      fetch("feedback.php?action=update", {
+        method: "POST",
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        showNotification(data.message);
+        closeUpdateModal();
+        loadFeedback();
+      })
+      .catch(error => {
+        console.error("Error updating feedback:", error);
+        showNotification("Error updating feedback.");
+      });
+    });
+
+    // Notification modal helper.
+    function showNotification(message) {
+      document.getElementById("notificationMessage").textContent = message;
+      document.getElementById("notificationModal").style.display = "block";
+      setTimeout(() => {
+        document.getElementById("notificationModal").style.display = "none";
+      }, 3000);
+    }
+
+    // Using addEventListener for close buttons.
+    document.getElementById("notificationClose").addEventListener("click", function() {
+      document.getElementById("notificationModal").style.display = "none";
+    });
+    document.getElementById("closeViewModal").addEventListener("click", function() {
+      document.getElementById("viewModal").style.display = "none";
+    });
+    document.getElementById("closeUpdateModal").addEventListener("click", function() {
+      document.getElementById("updateModal").style.display = "none";
+    });
+
+    window.onclick = function(event) {
+      if (event.target == document.getElementById("viewModal")) {
+        document.getElementById("viewModal").style.display = "none";
+      }
+      if (event.target == document.getElementById("updateModal")) {
+        document.getElementById("updateModal").style.display = "none";
+      }
+      if (event.target == document.getElementById("notificationModal")) {
+        document.getElementById("notificationModal").style.display = "none";
+      }
+    };
+
+    window.onload = loadFeedback;
+  </script>
+</body>
+</html>

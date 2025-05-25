@@ -1,0 +1,228 @@
+/* General styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+    overflow-x: hidden; /* Avoid horizontal scroll */
+    box-sizing: border-box;
+    line-height: 1.6;
+}
+
+/* Header styles */
+header {
+    background-color: #1dbab4; /* Updated color */
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 15px 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Navigation bar styles */
+.navigation {
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* Space between each link */
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.navigation a {
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 10px 0;
+    text-align: center;
+    text-decoration: none;
+    transition: color 0.3s, transform 0.2s;
+}
+
+.navigation a:hover {
+    background-color: #004d40;
+    border-radius: 4px;
+    transform: scale(1.05);
+}
+
+/* Specific styling for "Order Now" button */
+.navigation .button {
+    background-color: #00796b; /* Darker color for emphasis */
+    padding: 10px 20px;
+    border-radius: 5px;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.navigation .button:hover {
+    background-color: #004d40;
+    transform: scale(1.1);
+}
+
+/* Footer styles */
+.footer {
+    background-color: #00796b;
+    color: white;
+    padding: 20px 10px;
+    text-align: center;
+    width: 100%;
+    font-size: 12px;
+    z-index: 1000;
+    margin-top: auto;
+}
+
+.footer a {
+    color: white;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    color: #ffd700; /* Updated hover effect */
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+/* First Box styles */
+.first-box {
+    width: 100%;
+    margin: 0 auto;
+    background-color: #fdf5df; /* Softer beige background */
+    padding: 20px;
+    border-bottom: 2px solid #ddd;
+    text-align: center;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    min-height: 300px;
+}
+
+.first-box input {
+    width: 60%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    transition: border-color 0.3s ease;
+}
+
+.first-box input:focus {
+    outline: none;
+    border-color: #1dbab4;
+    box-shadow: 0px 0px 5px #1dbab4;
+}
+
+.first-box .button {
+    margin-top: 20px;
+    background-color: #f7cd46; /* Muted yellow CTA */
+    color: white;
+    padding: 12px 25px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.first-box .button:hover {
+    background-color: #e62739;
+    transform: scale(1.05);
+}
+
+/* Second Box styles */
+.second-box {
+    background-color: #ffffff;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    text-align: center;
+    margin: 0 auto;
+    width: 100%;
+    min-height: 100px;
+    margin-bottom: 20px;
+}
+
+/* Grid container for remaining boxes */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 20px;
+    min-height: 100vh;
+}
+
+.grid-item {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 20px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.grid-item:hover {
+    background-color: #e0f7fa;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.grid-item h1, .grid-item h2 {
+    margin-top: 0;
+}
+
+/* Button styles */
+.button {
+    background-color: #00796b;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    display: inline-block;
+    transition: background-color 0.3s ease, transform 0.2s ease-in-out;
+}
+
+.button:hover {
+    background-color: #004d40;
+    transform: scale(1.05);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .grid-container {
+        grid-template-columns: 1fr;
+    }
+
+    .first-box, .second-box {
+        width: 100%;
+    }
+}
+
+/* Additional styles for user-friendliness */
+
+/* Gradient background for the entire page */
+body {
+    background: linear-gradient(135deg, #1c77ac 0%, #6ed3cf 100%);
+}
+
+/* Card layout for services and important sections */
+.card {
+    background-color: white;
+    padding: 20px;
+    margin: 15px;
+    border-radius: 10px;
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* Animation for smoother transitions */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.element {
+    animation: fadeIn 0.5s ease-in;
+}
+
+/* Consistent font size across headings */
+h1, h2 {
+    font-size: 1.5rem;
+    line-height: 1.4;
+}

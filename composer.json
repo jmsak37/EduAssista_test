@@ -1,0 +1,16 @@
+{
+    "name": "julius/edu-assista",
+    "autoload": {
+        "psr-4": {
+            "Julius\\EduAssista\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "julius"
+        }
+    ],
+    "require": {
+        "dompdf/dompdf": "*"
+    }
+}
