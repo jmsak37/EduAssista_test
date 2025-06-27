@@ -7,6 +7,10 @@ namespace Composer\Autoload;
 class ComposerStaticInitd8287638056fb79c1752d3fae9521463
 {
     public static $prefixLengthsPsr4 = array (
+        'R' => 
+        array (
+            'RobThree\\Auth\\' => 14,
+        ),
         'J' => 
         array (
             'Julius\\EduAssista\\' => 18,
@@ -14,6 +18,10 @@ class ComposerStaticInitd8287638056fb79c1752d3fae9521463
     );
 
     public static $prefixDirsPsr4 = array (
+        'RobThree\\Auth\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/robthree/twofactorauth/src',
+        ),
         'Julius\\EduAssista\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
